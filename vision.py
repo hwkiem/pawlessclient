@@ -6,9 +6,11 @@ import math
 from selenium import webdriver
 
 
-def find_gesture(filename):
-    # read image
-    src = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
+driver = webdriver.Firefox()
+
+
+def find_gesture(src):
+
     dup = src
 
     # extract red channel
@@ -120,6 +122,11 @@ def build_face_lists():
     return encodings, names
 
 
+def interpret_gesture(left, right, browserOpen):
+    if left == '5' and right == '5' and browserOpen:
+        driver.get('http://localhost:8111/another')
+
+
 
 
 
@@ -166,8 +173,7 @@ if __name__ == "__main__":
 
             if len(face_encodings) > 0 and not browserOpen:
                 browserOpen = True
-                driver = webdriver.Firefox()
-                driver.get('http://www.google.com/')
+                driver.get('http://localhost:8111/')
 
             face_names = []
             for face_encoding in face_encodings:
@@ -229,10 +235,10 @@ if __name__ == "__main__":
             hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250, int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
 
 
-            cv2.imwrite('left.jpg', hand_regionL)
-            cv2.imwrite('right.jpg', hand_regionR)
-            leftHand = find_gesture('left.jpg')
-            rightHand = find_gesture('right.jpg')
+            leftHand = find_gesture(hand_regionL)
+            rightHand = find_gesture(hand_regionR)
+
+            interpret_gesture(leftHand, rightHand, browserOpen)
 
             if leftHand == '5' and rightHand == '5':
                 print('High five')
