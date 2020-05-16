@@ -1,7 +1,10 @@
 import os
 from flask import *
+from flask import Flask, render_template
+from flask import send_file, current_app as app
+from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
+import json
 from pdf2image import convert_from_path, convert_from_bytes
-
 
 # from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 
@@ -9,93 +12,85 @@ from pdf2image import convert_from_path, convert_from_bytes
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
-documents = [] # global 2D array, holding docs as lists with pages as array idexes
-curDocIdx = 0
-curPageIdx = 0
+login_manager = LoginManager()
+login_manager.init_app(app)
 
+app.secret_key = 'dOntgUesstHispLease'
+
+class User():
+  def __init__(self, id, files=[], curDocIdx=0, curPageIdx=0):
+    self.id = id
+    self.files = files
+    self.curDocIdx = curDocIdx
+
+
+
+@login_manager.user_loader
+def load_user(userid):
+  return User(userid)
 
 @app.route('/')
 def index():
-  image = 'james.jpeg'
-  return render_template('home.html', img=image)
+    return render_template('home.html')
+
+
+@app.route('/getdoc')
+def getdoc():
+  # here we will figure out which pdf we actually want to display
+  f = files[curDocIdx]
+  ext = os.path.splitext(f)[1].decode('utf-8')
+  if ext == 'pdf':
+    return show_static_pdf(files[curDocIdx])
+  return render_template('imageFile.html', img = img)
+
+# @app.route('/show')
+def show_static_pdf(id):
+    path = 'static/' + id
+    return send_file(path, attachment_filename=id)
+
+
+@app.route('/fileList', methods=['POST', 'GET'])
+def fileList():
+    directory = os.fsencode('static')
+    for file in os.listdir(directory):
+        current_user.files.append(os.fsdecode(file))
+    
+    return render_template('fileList.html', files=current_user.files)
+
+
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+  user = User(1) # UNI eventually 
+  load_user(user)
+  return redirect(url_for('fileList'))
+
+
+@app.route('/nextDoc', methods=['POST', 'GET']) # update page and then route back to /getDoc
+def goRight():
+
+
+# @app.route('/prevDoc', methods=['POST', 'GET'])
+# def goLeft():
+
+# @app.route('/nextPage', methods=['POST', 'GET'])
+# def scrollRight():
+
+# @app.route('/prevPage', methods=['POST', 'GET'])
+# def scrollLeft():
 
 
 
-@app.route('/prepareDocs', methods=['POST', 'GET']) # assume already served documents, held in 'static'; conver to global docs list
-def prepareDocs():
-  directory = os.fsencode('static')
-
-  for file in os.listdir(directory):
-    name, ext = os.path.splitext(file)
-    nameStr = name.decode('utf-8')
-    extStr = ext.decode('utf-8')
-    fileStr = file.decode('utf-8')
-    if extStr == '.pdf':
-      with tempfile.TemporaryDirectory() as path:
-        images_from_path = convert_from_path(fileStr, output_folder=path, last_page=1, first_page =0)
-      base_filename = os.path.splitext(os.path.basename(filename))[0] + '.jpg'    
-      save_dir = 'processed'
-      for page in images_from_path:
-        page.save(os.path.join(save_dir, base_filename), 'JPEG')
-
-    else:
-      documents.append(file)
   
-  print(documents)
-  return redirect(url_for('index'))
-
-
-
-
-
-
-
-
-
-
- 
-# filename = 'target.pdf'
- 
-# with tempfile.TemporaryDirectory() as path:
-#      images_from_path = convert_from_path(filename, output_folder=path, last_page=1, first_page =0)
- 
-# base_filename = os.path.splitext(os.path.basename(filename))[0] + '.jpg'     
- 
-# save_dir = 'processed'
- 
-# for page in images_from_path:
-#     page.save(os.path.join(save_dir, base_filename), 'JPEG')
-
-
-
-
-
-
-#     if extStr == '.pdf':
-#       images = convert_from_path('/usr/jamesryan/Documents/semester/pawlessclient/' + fileStr)
-#       documents.append(images)
-#     else:
-#       documents.append(file)
-
-
-
-
-
-
-@app.route('/another', methods=['POST', 'GET'])
-def another():
-  return render_template('another.html')
-
-
-
+  
+  
 
 # def build_face_lists():
 #     encodings = []
 #     names = []
 
-#     directory = os.fsencode('faces')
-#     for file in os.listdir(directory):
-#         filename = os.fsdecode(file)
+    # directory = os.fsencode('faces')
+    # for file in os.listdir(directory):
+    #     filename = os.fsdecode(file)
 #         name = filename.split('.')[0]
 
 #         path = 'faces/' + filename
@@ -110,13 +105,10 @@ def another():
 #     return encodings, names
 
 
-
-
-
 # @app.before_request
 # def before_request(): # on the event of a new connection
 #   """
-#   This function is run at the beginning of every web request 
+#   This function is run at the beginning of every web request
 #   (every time you enter an address in the web browser).
 #   We use it to setup a database connection that can be used throughout the request.
 
@@ -141,28 +133,26 @@ def another():
 #     pass
 
 if __name__ == "__main__":
-  import click
+    import click
 
-  @click.command()
-  @click.option('--debug', is_flag=True)
-  @click.option('--threaded', is_flag=True)
-  @click.argument('HOST', default='0.0.0.0')
-  @click.argument('PORT', default=8111, type=int)
-  def run(debug, threaded, host, port):
-    """
+
+    @click.command()
+    @click.option('--debug', is_flag=True)
+    @click.option('--threaded', is_flag=True)
+    @click.argument('HOST', default='0.0.0.0')
+    @click.argument('PORT', default=8111, type=int)
+    def run(debug, threaded, host, port):
+        """
     This function handles command line parameters.
     Run the server using:
-
         python server.py
-
     Show the help text using:
-
         python server.py --help
-
     """
 
-    HOST, PORT = host, port
-    print("running on %s:%d" % (HOST, PORT))
-    app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
+        HOST, PORT = host, port
+        print("running on %s:%d" % (HOST, PORT))
+        app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
-  run()
+
+    run()
