@@ -9,7 +9,12 @@ from selenium import webdriver
 driver = webdriver.Firefox()
 
 
-def find_gesture(src):
+def find_gesture(filename):
+    # read image
+    src = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
+
+    if src is None:
+        return 'None'
 
     dup = src
 
@@ -44,6 +49,8 @@ def find_gesture(src):
     blurred = cv2.GaussianBlur(mask, value, 0)
     _, thresh1 = cv2.threshold(blurred, 127, 255,
         cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
+
+    cv2.imwrite('yuh.jpg', blurred)
 
     max_area = -1
     for i in range(len(contours)):
@@ -234,9 +241,14 @@ if __name__ == "__main__":
 
             hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250, int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
 
+            cv2.imwrite('left.jpg', hand_regionL)
+            cv2.imwrite('right.jpg', hand_regionR)
 
-            leftHand = find_gesture(hand_regionL)
-            rightHand = find_gesture(hand_regionR)
+            leftHand = find_gesture('left.jpg')
+            rightHand = find_gesture('right.jpg')
+
+
+
 
             interpret_gesture(leftHand, rightHand, browserOpen)
 

@@ -35,10 +35,17 @@ def prepareDocs():
       documents.append(file)
   
   print(documents)
-
-
-
   return redirect(url_for('index'))
+
+
+
+
+@app.route('/another', methods=['POST', 'GET'])
+def another():
+  return render_template('another.html')
+
+
+
 
 # def build_face_lists():
 #     encodings = []
