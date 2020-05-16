@@ -1,6 +1,8 @@
 import os
 from flask import *
 from pdf2image import convert_from_path, convert_from_bytes
+
+
 # from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 
 
@@ -29,13 +31,53 @@ def prepareDocs():
     extStr = ext.decode('utf-8')
     fileStr = file.decode('utf-8')
     if extStr == '.pdf':
-      images = convert_from_path('/Usr/jamesryan/Documents/semester/VisualIstatic/' + fileStr)
-      documents.append(images)
+      with tempfile.TemporaryDirectory() as path:
+        images_from_path = convert_from_path(fileStr, output_folder=path, last_page=1, first_page =0)
+      base_filename = os.path.splitext(os.path.basename(filename))[0] + '.jpg'    
+      save_dir = 'processed'
+      for page in images_from_path:
+        page.save(os.path.join(save_dir, base_filename), 'JPEG')
+
     else:
       documents.append(file)
   
   print(documents)
   return redirect(url_for('index'))
+
+
+
+
+
+
+
+
+
+
+ 
+# filename = 'target.pdf'
+ 
+# with tempfile.TemporaryDirectory() as path:
+#      images_from_path = convert_from_path(filename, output_folder=path, last_page=1, first_page =0)
+ 
+# base_filename = os.path.splitext(os.path.basename(filename))[0] + '.jpg'     
+ 
+# save_dir = 'processed'
+ 
+# for page in images_from_path:
+#     page.save(os.path.join(save_dir, base_filename), 'JPEG')
+
+
+
+
+
+
+#     if extStr == '.pdf':
+#       images = convert_from_path('/usr/jamesryan/Documents/semester/pawlessclient/' + fileStr)
+#       documents.append(images)
+#     else:
+#       documents.append(file)
+
+
 
 
 
