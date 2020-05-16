@@ -1,52 +1,66 @@
 import os
 from flask import *
+from flask import Flask, render_template
+from flask import send_file, current_app as app
+import json
 from pdf2image import convert_from_path, convert_from_bytes
+
 # from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
-documents = [] # global 2D array, holding docs as lists with pages as array idexes
+documents = []  # global 2D array, holding docs as lists with pages as array idexes
 curDocIdx = 0
 curPageIdx = 0
 
 
 @app.route('/')
 def index():
-  image = 'james.jpeg'
-  return render_template('home.html', img=image)
+    image = 'james.jpeg'
+    return render_template('home.html', img=image)
+
+
+@app.route('/getdoc')
+def getdoc():
+  # here we will figure out which pdf we actually want to display
+  return show_static_pdf("1")
+
+@app.route('/show')
+def show_static_pdf(id):
+    attach = id + '.pdf'
+    path = 'static/pdf/' + attach
+    return send_file(path, attachment_filename=attach)
 
 
 
-@app.route('/prepareDocs', methods=['POST', 'GET']) # assume already served documents, held in 'static'; conver to global docs list
+'''
+@app.route('/prepareDocs',
+           methods=['POST', 'GET'])  # assume already served documents, held in 'static'; conver to global docs list
 def prepareDocs():
-  directory = os.fsencode('static')
+    directory = os.fsencode('static/pdf')
 
-  for file in os.listdir(directory):
-    name, ext = os.path.splitext(file)
-    nameStr = name.decode('utf-8')
-    extStr = ext.decode('utf-8')
-    fileStr = file.decode('utf-8')
-    if extStr == '.pdf':
-      images = convert_from_path('/Usr/jamesryan/Documents/semester/VisualIstatic/' + fileStr)
-      documents.append(images)
-    else:
-      documents.append(file)
-  
-  print(documents)
-  return redirect(url_for('index'))
+    for file in os.listdir(directory):
+        name, ext = os.path.splitext(file)
+        nameStr = name.decode('utf-8')
+        extStr = ext.decode('utf-8')
+        fileStr = file.decode('utf-8')
+        if extStr == '.pdf':
+            images = convert_from_path('/Usr/jamesryan/Documents/semester/VisualIstatic/' + fileStr)
+            documents.append(images)
+        else:
+            documents.append(file)
 
-
+    print(documents)
+    return redirect(url_for('index'))
 
 
 @app.route('/another', methods=['POST', 'GET'])
 def another():
-  return render_template('another.html')
+    return render_template('another.html')
 
-
-
-
+'''
 # def build_face_lists():
 #     encodings = []
 #     names = []
@@ -68,13 +82,10 @@ def another():
 #     return encodings, names
 
 
-
-
-
 # @app.before_request
 # def before_request(): # on the event of a new connection
 #   """
-#   This function is run at the beginning of every web request 
+#   This function is run at the beginning of every web request
 #   (every time you enter an address in the web browser).
 #   We use it to setup a database connection that can be used throughout the request.
 
@@ -99,28 +110,26 @@ def another():
 #     pass
 
 if __name__ == "__main__":
-  import click
+    import click
 
-  @click.command()
-  @click.option('--debug', is_flag=True)
-  @click.option('--threaded', is_flag=True)
-  @click.argument('HOST', default='0.0.0.0')
-  @click.argument('PORT', default=8111, type=int)
-  def run(debug, threaded, host, port):
-    """
+
+    @click.command()
+    @click.option('--debug', is_flag=True)
+    @click.option('--threaded', is_flag=True)
+    @click.argument('HOST', default='0.0.0.0')
+    @click.argument('PORT', default=8111, type=int)
+    def run(debug, threaded, host, port):
+        """
     This function handles command line parameters.
     Run the server using:
-
         python server.py
-
     Show the help text using:
-
         python server.py --help
-
     """
 
-    HOST, PORT = host, port
-    print("running on %s:%d" % (HOST, PORT))
-    app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
+        HOST, PORT = host, port
+        print("running on %s:%d" % (HOST, PORT))
+        app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 
-  run()
+
+    run()
