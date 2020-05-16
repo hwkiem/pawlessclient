@@ -3,6 +3,7 @@ import numpy as np
 import face_recognition
 import os
 import math
+from selenium import webdriver
 
 
 def find_gesture(filename):
@@ -127,6 +128,7 @@ if __name__ == "__main__":
 
     video_capture = cv2.VideoCapture(0)
 
+
     known_face_encodings, known_face_names = build_face_lists()
 
     # Initialize some variables
@@ -141,6 +143,7 @@ if __name__ == "__main__":
     num_frames1 = 0
     num_frames2 = 0
     aWeight = 0.5
+    browserOpen = False
     # found_hands = False
 
     while True:
@@ -160,6 +163,11 @@ if __name__ == "__main__":
             # Find all the faces and face encodings in the current frame of video
             face_locations = face_recognition.face_locations(rgb_small_frame)
             face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+
+            if len(face_encodings) > 0 and not browserOpen:
+                browserOpen = True
+                driver = webdriver.Firefox()
+                driver.get('http://www.google.com/')
 
             face_names = []
             for face_encoding in face_encodings:
@@ -228,6 +236,7 @@ if __name__ == "__main__":
 
             if leftHand == '5' and rightHand == '5':
                 print('High five')
+
             elif leftHand == '5':
                 print('left')
             elif rightHand == '5':

@@ -1,74 +1,95 @@
 import os
 from flask import *
+from pdf2image import convert_from_path, convert_from_bytes
 # from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
-
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-# app.secret_key = 'dOntgUesstHispLease'
-
-# class User(UserMixin):
-#   def __init__(self, id):
-#     self.id = id
+documents = [] # global 2D array, holding docs as lists with pages as array idexes
+curDocIdx = 0
+curPageIdx = 0
 
 
-# @login_manager.user_loader
-# def load_user(userid):
-#   return User(userid)
-
-
-@app.route('/') # force to login first
+@app.route('/')
 def index():
-  if current_user.is_authenticated:
-    return redirect(url_for('homePage'))
-  return redirect(url_for('login'))
+  image = 'james.jpeg'
+  return render_template('home.html', img=image)
+
+
+
+@app.route('/prepareDocs', methods=['POST', 'GET']) # assume already served documents, held in 'static'; conver to global docs list
+def prepareDocs():
+  directory = os.fsencode('static')
+
+  for file in os.listdir(directory):
+    name, ext = os.path.splitext(file)
+    nameStr = name.decode('utf-8')
+    extStr = ext.decode('utf-8')
+    fileStr = file.decode('utf-8')
+    if extStr == '.pdf':
+      images = convert_from_path('/Usr/jamesryan/Documents/semester/VisualIstatic/' + fileStr)
+      documents.append(images)
+    else:
+      documents.append(file)
+  
+  print(documents)
+
+
+
+  return redirect(url_for('index'))
+
+# def build_face_lists():
+#     encodings = []
+#     names = []
+
+#     directory = os.fsencode('faces')
+#     for file in os.listdir(directory):
+#         filename = os.fsdecode(file)
+#         name = filename.split('.')[0]
+
+#         path = 'faces/' + filename
+#         img = face_recognition.load_image_file(path)
+#         encoding = face_recognition.face_encodings(img)
+#         if len(encoding) < 1:
+#             print('No faces found in ' + filename)
+#         else:
+#             names.append(name)
+#             encodings.append(encoding[0])
+
+#     return encodings, names
 
 
 
 
 
+# @app.before_request
+# def before_request(): # on the event of a new connection
+#   """
+#   This function is run at the beginning of every web request 
+#   (every time you enter an address in the web browser).
+#   We use it to setup a database connection that can be used throughout the request.
 
+#   The variable g is globally accessible.
+#   """
+#   try:
+#     g.conn = engine.connect()
+#   except:
+#     print("uh oh, problem connecting to database")
+#     import traceback; traceback.print_exc()
+#     g.conn = None
 
-
-
-
-
-
-
-
-
-
-@app.before_request
-def before_request(): # on the event of a new connection
-  """
-  This function is run at the beginning of every web request 
-  (every time you enter an address in the web browser).
-  We use it to setup a database connection that can be used throughout the request.
-
-  The variable g is globally accessible.
-  """
-  try:
-    g.conn = engine.connect()
-  except:
-    print("uh oh, problem connecting to database")
-    import traceback; traceback.print_exc()
-    g.conn = None
-
-@app.teardown_request
-def teardown_request(exception): # on the event of a connection terminating
-  """
-  At the end of the web request, this makes sure to close the database connection.
-  If you don't, the database could run out of memory!
-  """
-  try:
-    g.conn.close()
-  except Exception as e:
-    pass
+# @app.teardown_request
+# def teardown_request(exception): # on the event of a connection terminating
+#   """
+#   At the end of the web request, this makes sure to close the database connection.
+#   If you don't, the database could run out of memory!
+#   """
+#   try:
+#     g.conn.close()
+#   except Exception as e:
+#     pass
 
 if __name__ == "__main__":
   import click
