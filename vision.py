@@ -9,6 +9,45 @@ from selenium import webdriver
 driver = webdriver.Firefox()
 
 
+def get_coords(p1):
+    try:
+        return int(p1[0][0][0]), int(p1[0][0][1])
+    except:
+        return int(p1[0][0]), int(p1[0][1])
+
+def head_movement(frame, first_frame):
+
+    gesture = 'Unconfirmed'
+    x_movement = 0
+    y_movement = 0
+
+    p0 = np.array([[face_center]], np.float32)
+    lk_params = dict(winSize=(15, 15),
+                     maxLevel=2,
+                     criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
+
+    while True:
+        ret, frame = video_capture.read()
+        old_gray = first_frame.copy()
+        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
+        cv2.circle(frame, get_coords(p1), 4, (0, 0, 255), -1)
+        cv2.circle(frame, get_coords(p0), 4, (255, 0, 0))
+
+        # get the xy coordinates for points p0 and p1
+        a, b = get_coords(p0), get_coords(p1)
+        x_movement += abs(a[0] - b[0])
+        y_movement += abs(a[1] - b[1])
+
+        if y_movement > 100:
+            gesture = 'Yes'
+
+        if gesture == 'Yes':
+            return "Confirmed"
+        else:
+            return "Unconfirmed"
+
+
 def find_gesture(filename):
     # read image
     src = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
@@ -28,12 +67,12 @@ def find_gesture(filename):
     red_img[:,:,2] = red_channel
 
     # set RGB color bounds
-    lower = (0,0,0)  
+    lower = (0,0,0)
     upper = (0,0,150)
     mask = cv2.inRange(red_img, lower, upper)
 
     # flip binary bits --> white blob
-    mask = cv2.bitwise_not(mask) 
+    mask = cv2.bitwise_not(mask)
     # cv2.imwrite('binary.jpeg', mask)
 
     kernel = np.ones((3, 3), np.uint8)
@@ -96,7 +135,7 @@ def find_gesture(filename):
             symbol = 'Fist'
         else:
             symbol = '1'
-    elif count_defects == 1: 
+    elif count_defects == 1:
         symbol = '2'
     elif count_defects == 2:
         symbol = '3'
@@ -160,6 +199,9 @@ if __name__ == "__main__":
     browserOpen = False
     # found_hands = False
 
+    confirmed = 'Unconfirmed'
+    head_counter = 4
+    has_confirmed = False
     while True:
         # Grab a single frame of video
         ret, frame1 = video_capture.read()
@@ -220,14 +262,27 @@ if __name__ == "__main__":
             face_center = left + ((right - left) / 2), top + ((bottom - top) / 2)
             # print(face_center)
 
-            # if confirmed == 'Unconfirmed':
-            #     confirmed = check(frame, frame_gray1)
-            # else:
-            #     next_check = check(frame, frame_gray1)
-            #     if next_check != 'Unconfirmed':
-            #         confirmed = next_check
 
-            # name = name + confirmed
+            if has_confirmed == False:
+                if confirmed == 'Unconfirmed':
+                    confirmed = head_movement(frame, frame_gray1)
+                    head_counter = 3
+                else:
+                    next_check = head_movement(frame, frame_gray1)
+                    if next_check == confirmed:
+                        head_counter -= 1
+                        if head_counter < 1:
+                            if next_check == 'Confirmed':
+                                has_confirmed = True
+                                name = name + confirmed
+                    else:
+                        head_counter = 4
+                        confirmed = next_check
+            else:
+                name = name + confirmed
+
+
+
 
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
