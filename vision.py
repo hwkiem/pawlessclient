@@ -10,8 +10,6 @@ driver = webdriver.Firefox()
 appState = ''
 curUNI = 'Unknown'
 
-def getCurrentUni():
-    return curUNI # could be 'Unknown'
 
 def get_coords(p1):
     try:
@@ -185,14 +183,20 @@ def build_face_lists():
 
 
 def interpret_gesture(left, right): # doc list/preview view boolean needed
-    if left == '2' and right == '2': # peace out/log out, can happen in any state
-        driver.get('http://localhost:8111/')
-    elif appState == '':
-        pass
-    elif appState == 'homePage': # can log in
-        pass 
-    elif appState == 'docView': # can scroll between them, select one for preview, print current 
-        pass
+    if appState == 'notLoggedIn' and left == '5' and right == '5': # send uni to login
+        driver.get('http://localhost:8111/login/' + curUNI)
+        time.sleep(2)
+    elif appState == 'fileList': # move left, move right, select for preview
+        if left == '5' and right == 'Fist':
+            driver.get('http://localhost:8111/prevDoc/')
+        elif left == 'Fist' and right == '5':
+            driver.get('http://localhost:8111/nextDoc/')
+        elif left == '5' and right == '5':
+            driver.get('http://localhost:8111/getDoc/')
+    elif appState == 'preview': # scroll, print, back out
+        # if left == '5' and right == '5': # print, path doesn't exist yet
+        #     driver.get('http://localhost:8111/prevDoc/') 
+        if left == 
     elif appState == 'pageView' # scroll betweeen pages, go back 
 
 
@@ -255,7 +259,7 @@ if __name__ == "__main__":
             face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
             if len(face_encodings) > 0 and appState == '':
-                appState = 'homePage'
+                appState = 'notLoggedIn'
                 driver.get('http://localhost:8111/')
             if not login:
                 face_names = []

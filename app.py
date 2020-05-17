@@ -5,9 +5,8 @@ from flask import send_file, current_app as app
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 import json
 from pdf2image import convert_from_path, convert_from_bytes
-import vision
 
-# from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
+
 
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -60,9 +59,8 @@ def fileList():
   return render_template('fileList.html', files=current_user.files, curDocIdx = current_user.curDocIdx)
 
 
-@app.route('/login', methods=['POST', 'GET'])
-def login():
-  uni = vision.getCurrentUni() # link to vision file
+@app.route('/login/<uni>', methods=['POST', 'GET'])
+def login(uni):
   if uni != 'Unknown':
     user = User(uni)  
     load_user(user)
