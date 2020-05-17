@@ -56,7 +56,7 @@ def fileList():
     for file in os.listdir(directory):
         current_user.files.append(os.fsdecode(file))
     
-  return render_template('fileList.html', files=current_user.files)
+  return render_template('fileList.html', files=current_user.files, curDocIdx = current_user.curDocIdx)
 
 
 @app.route('/login', methods=['POST', 'GET'])
