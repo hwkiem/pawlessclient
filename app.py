@@ -6,9 +6,6 @@ from flask_login import LoginManager, UserMixin, login_user, current_user, logou
 import json
 from pdf2image import convert_from_path, convert_from_bytes
 
-
-
-
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
@@ -17,33 +14,55 @@ login_manager.init_app(app)
 
 app.secret_key = 'dOntgUesstHispLease'
 
-class User(UserMixin):
-  def __init__(self, id, files=[], curDocIdx=0, curPageIdx=0):
-    self.id = id
-    self.files = files
-    self.curDocIdx = curDocIdx
 
+class User(UserMixin):
+    def __init__(self, id, files=[], curDocIdx=0, curPageIdx=0):
+        self.id = id
+        self.files = files
+        self.curDocIdx = curDocIdx
 
 
 @login_manager.user_loader
 def load_user(userid):
-  return User(userid)
+    return User(userid)
+
 
 @app.route('/')
 def index():
     return render_template('home.html')
 
+''''@app.route('/print', methods=['POST', 'GET'])
+def print():
 
-@app.route('/getdoc')
+  # print out pdf
+  if current_user.curDocIdx < len(current_user.files) - 1:
+    current_user.curDocIdx -= 1
+  elif current_user.curDocIdx < len(current_user.files) - 1:
+    current_user.curDocIdx += 1
+  else:
+    return render_template('doc.html')
+
+  return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
+
+'''
+
+@app.route('/getdoc', methods=['POST', 'GET'])
 def getdoc():
-  # here we will figure out which pdf we actually want to display
-  f = files[curDocIdx]
-  ext = os.path.splitext(f)[1].decode('utf-8')
-  if ext == 'pdf':
-    return show_static_pdf(files[curDocIdx])
-  return render_template('imageFile.html', img = img)
+    # here we will figure out which pdf we actually want to display
+    f = current_user.files[current_user.curDocIdx]
+    print(f)
+    #ext = os.path.splitext(f)[1].decode('utf-8')
+    ext = f.split('.')[-1]
+    print(ext)
+    if ext == 'pdf':
+        id = current_user.files[current_user.curDocIdx]
+        path = 'static/' + id
+        #return send_file(path, attachment_filename=id)
+        return show_static_pdf(f)
+    return render_template('imageFile.html', img=f)
 
-# @app.route('/show')
+
+@app.route('/show', methods=['POST', 'GET'])
 def show_static_pdf(id):
     path = 'static/' + id
     return send_file(path, attachment_filename=id)
@@ -51,44 +70,37 @@ def show_static_pdf(id):
 
 @app.route('/fileList', methods=['POST', 'GET'])
 def fileList():
-  if len(current_user.files) == 0:
-    directory = os.fsencode('static')
-    for file in os.listdir(directory):
-        current_user.files.append(os.fsdecode(file))
-    
-  return render_template('fileList.html', files=current_user.files, curDocIdx = current_user.curDocIdx)
+    if len(current_user.files) == 0:
+        directory = os.fsencode('static')
+        for file in os.listdir(directory):
+            current_user.files.append(os.fsdecode(file))
+
+    return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
 
 
 @app.route('/login/<uni>', methods=['POST', 'GET'])
 def login(uni):
-  if uni != 'Unknown':
-    user = User(uni)  
-    load_user(user)
-    return redirect(url_for('fileList'))
-  # return # redirect somewhere idk
+    if uni != 'Unknown':
+        user = User(uni, [], 0, 0)
+        login_user(user)
+        return redirect(url_for('fileList'))
+    # return # redirect somewhere idk
 
 
-@app.route('/nextDoc', methods=['POST', 'GET']) # update page and then route back to /getDoc
+@app.route('/nextDoc', methods=['POST', 'GET'])  # update page and then route back to /getDoc
 def goRight():
-  if current_user.curDocIdx < len(current_user.files) - 1:
-    current_user.curDocIdx += 1
-  redirect(url_for('fileList'))
+    if current_user.curDocIdx < len(current_user.files) - 1:
+        current_user.curDocIdx += 1
+    #return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
+    return redirect(url_for('getdoc'))
 
 
 @app.route('/prevDoc', methods=['POST', 'GET'])
 def goLeft():
-  if current_user.curDocIdx < len(current_user.files) - 1:
-    current_user.curDocIdx -= 1
-  redirect(url_for('fileList'))
-
-
-
-
-  
-
-
-
-
+    if current_user.curDocIdx < len(current_user.files) - 1:
+        current_user.curDocIdx -= 1
+    #return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
+    return redirect(url_for('getdoc'))
 
 
 # @app.before_request
@@ -129,12 +141,12 @@ if __name__ == "__main__":
     @click.argument('PORT', default=8111, type=int)
     def run(debug, threaded, host, port):
         """
-    This function handles command line parameters.
-    Run the server using:
-        python server.py
-    Show the help text using:
-        python server.py --help
-    """
+This function handles command line parameters.
+Run the server using:
+    python server.py
+Show the help text using:
+    python server.py --help
+"""
 
         HOST, PORT = host, port
         print("running on %s:%d" % (HOST, PORT))
