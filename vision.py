@@ -9,6 +9,7 @@ import time
 driver = webdriver.Firefox()
 appState = ''
 curUNI = 'Unknown'
+curY = 0
 
 
 def get_coords(p1):
@@ -182,21 +183,33 @@ def build_face_lists():
     return encodings, names
 
 
-def interpret_gesture(left, right): # doc list/preview view boolean needed
+def interpret_gesture(left, right): 
     if appState == 'notLoggedIn' and left == '5' and right == '5': # send uni to login
         driver.get('http://localhost:8111/login/' + curUNI)
         time.sleep(2)
     elif appState == 'fileList': # move left, move right, select for preview
         if left == '5' and right == 'Fist':
             driver.get('http://localhost:8111/prevDoc/')
+            time.sleep(2)
         elif left == 'Fist' and right == '5':
             driver.get('http://localhost:8111/nextDoc/')
+            time.sleep(2)
         elif left == '5' and right == '5':
             driver.get('http://localhost:8111/getDoc/')
+            time.sleep(2)
     elif appState == 'preview': # scroll, print, back out
         # if left == '5' and right == '5': # print, path doesn't exist yet
         #     driver.get('http://localhost:8111/prevDoc/') 
-        if left == 
+        if left == 'Fist' and right == 'Fist': # back to doc view
+            driver.get('http://localhost:8111/fileList/')
+            time.sleep(2) 
+        elif left == '5' and right == 'Fist': # left analagous to up
+            driver.get('http://localhost:8111/prevDoc/')
+            time.sleep(2)
+        elif left == 'Fist' and right == '5': right to down
+            driver.get('http://localhost:8111/nextDoc/')
+            time.sleep(2)
+
     elif appState == 'pageView' # scroll betweeen pages, go back 
 
 
@@ -231,7 +244,6 @@ if __name__ == "__main__":
     num_frames1 = 0
     num_frames2 = 0
     aWeight = 0.5
-    browserOpen = False
 
     confirmed = 'Unconfirmed'
     head_counter = 4
@@ -357,19 +369,6 @@ if __name__ == "__main__":
                 elif rightHand == '5':
                     print('right')
 
-                # if leftHand == 'Fist' or rightHand == 'Fist':
-                #     logout = True
-                #     login = False
-
-                # elif leftHand == '5' and rightHand == '5':
-                #     print('High five')
-
-                # elif leftHand == '5':
-                #     action = 'moveprev'
-                #     print('left')
-                # elif rightHand == '5':
-                #     action = 'movenext'
-                #     print('right')
 
                 if confirmed == 'Unconfirmed':
                     confirmed = head_movement(frame, frame_gray1)

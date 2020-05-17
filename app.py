@@ -4,7 +4,6 @@ from flask import Flask, render_template
 from flask import send_file, current_app as app
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 import json
-from pdf2image import convert_from_path, convert_from_bytes
 
 
 
@@ -18,7 +17,7 @@ login_manager.init_app(app)
 app.secret_key = 'dOntgUesstHispLease'
 
 class User(UserMixin):
-  def __init__(self, id, files=[], curDocIdx=0, curPageIdx=0):
+  def __init__(self, id, files=[], curDocIdx=0):
     self.id = id
     self.files = files
     self.curDocIdx = curDocIdx
@@ -37,11 +36,11 @@ def index():
 @app.route('/getdoc')
 def getdoc():
   # here we will figure out which pdf we actually want to display
-  f = files[curDocIdx]
+  f = current_user.files[current_user.curDocIdx]
   ext = os.path.splitext(f)[1].decode('utf-8')
   if ext == 'pdf':
-    return show_static_pdf(files[curDocIdx])
-  return render_template('imageFile.html', img = img)
+    return show_static_pdf(current_user.files[current_user.curDocIdx])
+  return render_template('imageFile.html', img = f)
 
 # @app.route('/show')
 def show_static_pdf(id):
