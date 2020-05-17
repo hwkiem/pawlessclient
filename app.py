@@ -6,6 +6,8 @@ from flask_login import LoginManager, UserMixin, login_user, current_user, logou
 import json
 from pdf2image import convert_from_path, convert_from_bytes
 
+import cups
+
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
 
@@ -31,38 +33,26 @@ def load_user(userid):
 def index():
     return render_template('home.html')
 
-''''@app.route('/print', methods=['POST', 'GET'])
-def print():
 
-  # print out pdf
-  if current_user.curDocIdx < len(current_user.files) - 1:
-    current_user.curDocIdx -= 1
-  elif current_user.curDocIdx < len(current_user.files) - 1:
-    current_user.curDocIdx += 1
-  else:
-    return render_template('doc.html')
-
-  return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
-
-'''
-
-@app.route('/getdoc', methods=['POST', 'GET'])
+@app.route('/getdoc')
 def getdoc():
     # here we will figure out which pdf we actually want to display
     f = current_user.files[current_user.curDocIdx]
+    return render_template('doc.html', doc_id=f)
     print(f)
     #ext = os.path.splitext(f)[1].decode('utf-8')
     ext = f.split('.')[-1]
-    print(ext)
     if ext == 'pdf':
         id = current_user.files[current_user.curDocIdx]
+        id = '1.pdf'
         path = 'static/' + id
+        return send_file(path, attachment_filename=id)
         #return send_file(path, attachment_filename=id)
         return show_static_pdf(f)
+    print("here")
     return render_template('imageFile.html', img=f)
 
 
-@app.route('/show', methods=['POST', 'GET'])
 def show_static_pdf(id):
     path = 'static/' + id
     return send_file(path, attachment_filename=id)
@@ -75,6 +65,7 @@ def fileList():
         for file in os.listdir(directory):
             current_user.files.append(os.fsdecode(file))
 
+    return redirect(url_for('getdoc'))
     return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
 
 
@@ -84,7 +75,8 @@ def login(uni):
         user = User(uni, [], 0, 0)
         login_user(user)
         return redirect(url_for('fileList'))
-    # return # redirect somewhere idk
+    return redirect(url_for('index'))
+
 
 
 @app.route('/nextDoc', methods=['POST', 'GET'])  # update page and then route back to /getDoc
@@ -101,6 +93,32 @@ def goLeft():
         current_user.curDocIdx -= 1
     #return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
     return redirect(url_for('getdoc'))
+
+@app.route('/print', methods=['POST', 'GET'])
+def print_out():
+  # print out pdf
+  path = 'static/' + current_user.files[current_user.curDocIdx]
+  conn = cups.Connection()
+  printers = conn.getPrinters()
+  printer_name = printers.keys()[0]
+  conn.printFile(printer_name, path, "", {})
+
+  # delete file
+
+  if len(current_user.files) - 1 > current_user.curDocIdx:
+    current_user.curDocIdx -= 1
+  elif current_user.curDocIdx < len(current_user.files) - 1:
+    current_user.curDocIdx += 1
+  else:
+    return render_template('home.html', loggedin = True)
+
+  #return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
+  return redirect(url_for('getdoc'))
+
+@app.route('/logout', methods=['POST', 'GET'])
+def logout():
+  logout_user()
+  return(redirect(url_for('index')))
 
 
 # @app.before_request
@@ -132,6 +150,7 @@ def goLeft():
 
 if __name__ == "__main__":
     import click
+
 
 
     @click.command()
