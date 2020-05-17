@@ -17,7 +17,7 @@ login_manager.init_app(app)
 
 app.secret_key = 'dOntgUesstHispLease'
 
-class User():
+class User(UserMixin):
   def __init__(self, id, files=[], curDocIdx=0, curPageIdx=0):
     self.id = id
     self.files = files
@@ -51,11 +51,12 @@ def show_static_pdf(id):
 
 @app.route('/fileList', methods=['POST', 'GET'])
 def fileList():
+  if len(current_user.files) == 0:
     directory = os.fsencode('static')
     for file in os.listdir(directory):
         current_user.files.append(os.fsdecode(file))
     
-    return render_template('fileList.html', files=current_user.files)
+  return render_template('fileList.html', files=current_user.files)
 
 
 @app.route('/login', methods=['POST', 'GET'])
@@ -67,42 +68,25 @@ def login():
 
 @app.route('/nextDoc', methods=['POST', 'GET']) # update page and then route back to /getDoc
 def goRight():
+  if current_user.curDocIdx < len(current_user.files) - 1:
+    current_user.curDocIdx += 1
+  redirect(url_for('fileList'))
 
 
-# @app.route('/prevDoc', methods=['POST', 'GET'])
-# def goLeft():
+@app.route('/prevDoc', methods=['POST', 'GET'])
+def goLeft():
+  if current_user.curDocIdx < len(current_user.files) - 1:
+    current_user.curDocIdx -= 1
+  redirect(url_for('fileList'))
 
-# @app.route('/nextPage', methods=['POST', 'GET'])
-# def scrollRight():
-
-# @app.route('/prevPage', methods=['POST', 'GET'])
-# def scrollLeft():
 
 
 
   
-  
-  
 
-# def build_face_lists():
-#     encodings = []
-#     names = []
 
-    # directory = os.fsencode('faces')
-    # for file in os.listdir(directory):
-    #     filename = os.fsdecode(file)
-#         name = filename.split('.')[0]
 
-#         path = 'faces/' + filename
-#         img = face_recognition.load_image_file(path)
-#         encoding = face_recognition.face_encodings(img)
-#         if len(encoding) < 1:
-#             print('No faces found in ' + filename)
-#         else:
-#             names.append(name)
-#             encodings.append(encoding[0])
 
-#     return encodings, names
 
 
 # @app.before_request
