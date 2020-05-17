@@ -8,6 +8,10 @@ import time
 
 driver = webdriver.Firefox()
 appState = ''
+curUNI = 'Unknown'
+
+def getCurrentUni():
+    return curUNI # could be 'Unknown'
 
 def get_coords(p1):
     try:
@@ -313,6 +317,7 @@ if __name__ == "__main__":
             else:
                 name = name + confirmed
 
+            curUNI = name
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
             if has_confirmed:

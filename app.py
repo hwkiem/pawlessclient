@@ -5,6 +5,7 @@ from flask import send_file, current_app as app
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 import json
 from pdf2image import convert_from_path, convert_from_bytes
+import vision
 
 # from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
 
@@ -61,9 +62,12 @@ def fileList():
 
 @app.route('/login', methods=['POST', 'GET'])
 def login():
-  user = User(1) # UNI eventually 
-  load_user(user)
-  return redirect(url_for('fileList'))
+  uni = vision.getCurrentUni() # link to vision file
+  if uni != 'Unknown':
+    user = User(uni)  
+    load_user(user)
+    return redirect(url_for('fileList'))
+  # return # redirect somewhere idk
 
 
 @app.route('/nextDoc', methods=['POST', 'GET']) # update page and then route back to /getDoc
