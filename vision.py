@@ -214,12 +214,12 @@ def interpret_gesture(left, right, head_pos):
             time.sleep(2)
             s = (driver.current_url.split(curUNI + '/'))[1]
             curDoc = int(s[:-1])
-        elif left == 'two' and right == 'two':
+        elif head_pos == 'duck':
             # TODO EDIT INSTRUCTIONS
-            instructions = "To select the next file in your queue, hold up a five with your right hand and a fist with your left, \
-                To move back up to the previous uploaded file, hold up a five with your left hand and a fist with your right, \
-                To print out the displayed file, nod \
-                To logout, hold up a fist with both of your hands"
+            instructions = "To select the next file in your queue, hold up a five with your right hand, \
+                To move back up to the previous uploaded file, hold up a five with your left hand, \
+                To print out the displayed file, jump \
+                To logout, just walk away"
             engine = pyttsx3.init()
             engine.say(instructions)
 
