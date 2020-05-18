@@ -13,6 +13,7 @@ import urllib.request
 from bs4 import BeautifulSoup
 import re
 import os
+import subprocess
 
 driver = webdriver.Firefox()
 appState = ''
@@ -272,8 +273,28 @@ if __name__ == "__main__":
 
 
     print("Welcome to PawlessPrint. Here is a list of your valid printers:")
-    os.system("lpstat -p -d")
-    printer_name = input("Please name which printer you'd like to connect to: ")
+    output = subprocess.check_output("lpstat -p -d", shell=True)
+    output = str(output)
+    printer_list = output.split(" ")
+    #printer_options = os.system("lpstat -p -d")
+    num_to_printer = {}
+    index = 1
+    up_next = False
+    for i in printer_list:
+        if up_next:
+            num_to_printer[index] = i
+            index += 1
+
+        if "printer" in i:
+            up_next = True
+        else:
+            up_next = False
+
+    for i in num_to_printer:
+        print(i, " ", num_to_printer[i])
+    printer_num = input("Please enter the number corresponding to the printer you'd like to connect to: ")
+    printer_name = num_to_printer[int(printer_num)]
+
     video_capture = cv2.VideoCapture(0)
 
     known_face_encodings, known_face_names = build_face_lists()
