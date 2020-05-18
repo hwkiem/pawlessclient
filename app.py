@@ -3,9 +3,17 @@ from flask import *
 from flask import Flask, render_template
 from flask import send_file, current_app as app
 from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user, login_required
-import json
-
 import cups
+import json
+from pdf2image import convert_from_path, convert_from_bytes
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
+#import pdftotext
+from os import system
+from gtts import gTTS
+import pyttsx3
+
+
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -39,15 +47,16 @@ def getdoc():
     print(current_user.curDocIdx)
     # here we will figure out which pdf we actually want to display
     f = current_user.files[current_user.curDocIdx]
-    f = 'pls.pdf'
+    print(f)
+    return render_template('doc.html', doc_id=f)
     print(f)
     # return render_template('doc.html', doc_id=f)
     #ext = os.path.splitext(f)[1].decode('utf-8')
     ext = f.split('.')[-1]
     if ext == 'pdf':
         id = current_user.files[current_user.curDocIdx]
-        id = 'pls.pdf'
-        path = 'static/' + id
+        id = '1.pdf'
+        path = 'static/pdf/' + id
         return send_file(path, attachment_filename=id)
         #return send_file(path, attachment_filename=id)
         return show_static_pdf(f)
@@ -57,18 +66,18 @@ def getdoc():
 
 
 def show_static_pdf(id):
-    path = 'static/' + id
+    path = 'static/pdf/' + id
     return send_file(path, attachment_filename=id)
 
 
 @app.route('/fileList', methods=['POST', 'GET'])
 def fileList():
     if len(current_user.files) == 0:
-        directory = os.fsencode('static')
+        directory = os.fsencode('static/pdf')
         for file in os.listdir(directory):
             current_user.files.append(os.fsdecode(file))
 
-    return redirect(url_for('getdoc'))
+    #return redirect(url_for('getdoc'))
     return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
 
 
@@ -84,39 +93,73 @@ def login(uni):
 
 @app.route('/nextDoc', methods=['POST', 'GET'])  # update page and then route back to /getDoc
 def goRight():
+    print(current_user.curDocIdx)
     if current_user.curDocIdx < len(current_user.files) - 1:
         current_user.curDocIdx += 1
-    #return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
-    return redirect(url_for('getdoc'))
+    return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
+    #return redirect(url_for('getdoc'))
 
 
 @app.route('/prevDoc', methods=['POST', 'GET'])
 def goLeft():
-    if current_user.curDocIdx < len(current_user.files) - 1:
+    print(current_user.curDocIdx)
+    if current_user.curDocIdx > 0:
         current_user.curDocIdx -= 1
-    #return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
-    return redirect(url_for('getdoc'))
+    return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
+    #return redirect(url_for('getdoc'))
+
+'''
+@app.route('/readpdf')
+def read():
+    path = 'static/pdf/' + current_user.files[current_user.curDocIdx]
+    with open(path, "rb") as f:
+        pdf = pdftotext.PDF(f)
+
+    string_of_text = ''
+    for text in pdf:
+        string_of_text += text
+
+    final_file = gTTS(text=string_of_text, lang='en')  # store file in variable
+    final_file.save("Speech.mp3")
+    os.system("mpg321 Speech.mp3")
+'''
+
+@app.route('/instructions')
+def read_instr():
+
+    instructions = "To select the next file in your queue, hold up a five with your right hand, \
+    To move back up to the previous uploaded file, hold up a five with your left hand \
+    To print out the displayed file, nod \
+    To logout, hold up a fist with either of your hands"
+    engine = pyttsx3.init()
+    engine.say(instructions)
+
+    '''
+    final_file = gTTS(text=instructions, lang='en')  # store file in variable
+    final_file.save("Speech.mp3")
+    os.system("mpg321 Speech.mp3")'''
+    return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
+
 
 @app.route('/print', methods=['POST', 'GET'])
 def print_out():
   # print out pdf
-  path = 'static/' + current_user.files[current_user.curDocIdx]
+  path = 'static/pdf/' + current_user.files[current_user.curDocIdx]
   conn = cups.Connection()
   printers = conn.getPrinters()
   printer_name = printers.keys()[0]
   conn.printFile(printer_name, path, "", {})
 
-  # delete file
+  # TODO: delete file
 
-  if len(current_user.files) - 1 > current_user.curDocIdx:
+  if current_user.curDocIdx > 0:
     current_user.curDocIdx -= 1
   elif current_user.curDocIdx < len(current_user.files) - 1:
     current_user.curDocIdx += 1
   else:
     return render_template('home.html', loggedin = True)
 
-  #return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
-  return redirect(url_for('getdoc'))
+  return render_template('fileList.html', files=current_user.files, curDocIdx=current_user.curDocIdx)
 
 @app.route('/logout', methods=['POST', 'GET'])
 def logout():
