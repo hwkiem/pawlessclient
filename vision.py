@@ -191,11 +191,11 @@ def interpret_gesture(left, right, head_pos):
             curDoc = int(s[:-1])
         elif head_pos == 'lean_left':
             appState = 'preview'
-            driver.get(baseUrl + 'user/' + str(curDoc) + '/fileview')
+            driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc) + '/view')
             time.sleep(2)
 
         elif head_pos == 'jump':
-            url = "http://pawlessprint.herokuapp.com/post/" + str(3) + "/fileview"
+            url = "http://pawlessprint.herokuapp.com/user/" + curUNI + '/' + str(curDoc) + "/view"
 
             response1 = urllib.request.urlopen(url)
             response = response1.read()
