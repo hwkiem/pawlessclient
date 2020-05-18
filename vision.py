@@ -174,13 +174,18 @@ def interpret_gesture(left, right, head_pos):
         os.remove('to_print.jpg')
 
     if head_pos == 'duck':
-        # TODO EDIT INSTRUCTIONS
         instructions = "To select the next file in your queue, hold up a five with your right hand, \
                     To move back up to the previous uploaded file, hold up a five with your left hand, \
-                    To print out the displayed file, jump \
+                    To print out the selected file, jump, \
+                    To enter preview mode, lean right, \
+                    To scroll down through a document, hold up your right hand, \
+                    To scroll up through a document, hold up your left hand, \
+                    To exit preview mode and return to the queue, lean left \
                     To logout, just walk away"
         engine = pyttsx3.init()
         engine.say(instructions)
+        engine.runAndWait()
+        engine.stop()
 
     if appState == 'notLoggedIn' and left == '5' and right == '5':  # send uni to login
         appState = 'fileList'
