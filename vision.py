@@ -5,7 +5,7 @@ import os
 import math
 from selenium import webdriver
 import time
-
+import pyttsx3
 
 driver = webdriver.Firefox()
 appState = ''
@@ -209,6 +209,14 @@ def interpret_gesture(left, right):
             time.sleep(2)
             s = (driver.current_url.split(curUNI + '/'))[1]
             curDoc = int(s[:-1])
+        elif left == '2' and right == '2':
+            # TODO EDIT INSTRUCTIONS
+            instructions = "To select the next file in your queue, hold up a five with your right hand and a fist with your left, \
+                To move back up to the previous uploaded file, hold up a five with your left hand and a fist with your right, \
+                To print out the displayed file, nod \
+                To logout, hold up a fist with both of your hands"
+            engine = pyttsx3.init()
+            engine.say(instructions)
     #     elif left == '5' and right == '5':
     #         driver.get('http://localhost:8111/getDoc/')
     #         time.sleep(2)
