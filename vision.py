@@ -12,51 +12,13 @@ from urllib import request
 from bs4 import BeautifulSoup
 import re
 import os
-import urllib
-
 
 driver = webdriver.Firefox()
 appState = ''
 curUNI = 'Unknown'
-baseUrl = 'http://127.0.0.1:8000/'
+baseUrl = 'http://pawlessprint.herokuapp.com/'
 curDoc = None
 printer_name = sys.argv[1]
-
-
-def get_coords(p1):
-    try:
-        return int(p1[0][0][0]), int(p1[0][0][1])
-    except:
-        return int(p1[0][0]), int(p1[0][1])
-
-
-def head_movement(frame, first_frame):
-
-    x_movement = 0
-    y_movement = 0
-
-    p0 = np.array([[face_center]], np.float32)
-    lk_params = dict(winSize=(15, 15),
-                     maxLevel=2,
-                     criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-
-    while True:
-        ret, frame = video_capture.read()
-        old_gray = first_frame.copy()
-        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
-        cv2.circle(frame, get_coords(p1), 4, (0, 0, 255), -1)
-        cv2.circle(frame, get_coords(p0), 4, (255, 0, 0))
-
-        # get the xy coordinates for points p0 and p1
-        a, b = get_coords(p0), get_coords(p1)
-        x_movement += abs(a[0] - b[0])
-        y_movement += abs(a[1] - b[1])
-
-        # print(y_movement)
-        print(y_movement)
-        if y_movement > 200:
-            return 'Jump'
 
 
 
@@ -121,7 +83,6 @@ def find_gesture(filename):
             return "Fist"
     else:
         return 'None'
-
 
     x, y, w, h = cv2.boundingRect(cnt)
     cv2.rectangle(dup, (x, y), (x + w, y + h), (0, 0, 255), 0)
@@ -201,13 +162,22 @@ def interpret_gesture(left, right, head_pos):
         return
     global printer_name
 
-    if appState == 'notLoggedIn' and left == '5' and right == '5': # send uni to login
+    if head_pos == 'duck':
+        # TODO EDIT INSTRUCTIONS
+        instructions = "To select the next file in your queue, hold up a five with your right hand, \
+                    To move back up to the previous uploaded file, hold up a five with your left hand, \
+                    To print out the displayed file, jump \
+                    To logout, just walk away"
+        engine = pyttsx3.init()
+        engine.say(instructions)
+
+    if appState == 'notLoggedIn' and left == '5' and right == '5':  # send uni to login
         appState = 'fileList'
         curDoc = 1
         driver.get(baseUrl + 'user/' + curUNI + '/1/')
         time.sleep(2)
 
-    elif appState == 'fileList': # move left, move right, select for preview
+    elif appState == 'fileList':  # move left, move right, select for preview
         if left == '5':
             driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc - 1))
             time.sleep(2)
@@ -222,17 +192,9 @@ def interpret_gesture(left, right, head_pos):
             appState = 'preview'
             driver.get(baseUrl + 'post/' + str(curDoc) + '/fileview')
             time.sleep(2)
-        elif head_pos == 'duck':
-            # TODO EDIT INSTRUCTIONS
-            instructions = "To select the next file in your queue, hold up a five with your right hand, \
-                To move back up to the previous uploaded file, hold up a five with your left hand, \
-                To print out the displayed file, jump \
-                To logout, just walk away"
-            engine = pyttsx3.init()
-            engine.say(instructions)
 
         elif head_pos == 'jump':
-            url = "http://pawlessprint.herokuapp.com/post/" + curDoc + "/fileview"
+            url = "http://pawlessprint.herokuapp.com/post/" + str(curDoc) + "/fileview"
 
             response = request.urlopen(url).read()
             print(response)
@@ -245,7 +207,7 @@ def interpret_gesture(left, right, head_pos):
             request.urlretrieve(url, "to_print.pdf")
 
             os.system("lpr -P %s to_print.pdf", printer_name)
-    elif appState == 'preview': # scroll, print, back out
+    elif appState == 'preview':  # scroll, print, back out
         # if left == '5': # left analagous to up
         #     x = driver.find_element_by_id('previous')
         #     x.click()
@@ -253,25 +215,14 @@ def interpret_gesture(left, right, head_pos):
         # elif right == '5': # right to down
         #     x = driver.find_element_by_class_name('toolbarButton pageDown').click()
 
-            # time.sleep(2)
+        # time.sleep(2)
         if head_pos == 'lean_right':
             appState = 'fileList'
             driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc))
             time.sleep(2)
 
-
-
-        elif head_pos == 'duck':
-            # TODO EDIT INSTRUCTIONS
-            instructions = "To select the next file in your queue, hold up a five with your right hand, \
-                To move back up to the previous uploaded file, hold up a five with your left hand, \
-                To print out the displayed file, jump \
-                To logout, just walk away"
-            engine = pyttsx3.init()
-            engine.say(instructions)
-
         elif head_pos == 'jump':
-            url = "http://pawlessprint.herokuapp.com/post/" + curDoc + "/fileview"
+            url = "http://pawlessprint.herokuapp.com/post/" + str(curDoc) + "/fileview"
 
             response = request.urlopen(url).read()
             print(response)
@@ -301,11 +252,6 @@ def interpret_gesture(left, right, head_pos):
     #         time.sleep(2)
 
     # elif appState == 'pageView' # scroll betweeen pages, go back
-
-
-
-
-
 
 
 if __name__ == "__main__":
@@ -357,16 +303,20 @@ if __name__ == "__main__":
             # Find all the faces and face encodings in the current frame of video
             face_locations = face_recognition.face_locations(rgb_small_frame)
             face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-            
+
             if len(face_encodings) == 0 and appState == 'fileList':
                 logout_counter -= 1
                 if logout_counter == 0:
                     # log out
                     appState = ''
+                    prev_y_pos = 0
+                    prev_x_pos = 0
+                    logout_counter = 5
+                    login = False
                     driver.get(baseUrl)
             else:
                 logout_counter = 5
-            if len(face_encodings) == 1 and appState == '': # someone entered frame
+            if len(face_encodings) == 1 and appState == '':  # someone entered frame
                 appState = 'notLoggedIn'
                 driver.get(baseUrl + 'client/')
                 time.sleep(.5)
@@ -408,13 +358,11 @@ if __name__ == "__main__":
             font = cv2.FONT_HERSHEY_DUPLEX
             face_center = left + ((right - left) / 2), top + ((bottom - top) / 2)
 
-
             curUNI = name
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
             if name != 'Unknown':
                 login = True
-
-
+            print(name)
             if login:
                 clone = frame.copy()
 
@@ -442,14 +390,14 @@ if __name__ == "__main__":
                         head_pos = "jump"
                     if face_center[1] - prev_y_pos > 50:
                         head_pos = "duck"
-                
+
                 if prev_x_pos == 0:
                     prev_x_pos = face_center[0]
                 else:
                     if prev_x_pos - face_center[0] > 100:
-                        head_pos = "lean_right"
-                    if face_center[0] - prev_x_pos > 100:
                         head_pos = "lean_left"
+                    if face_center[0] - prev_x_pos > 100:
+                        head_pos = "lean_right"
                 print(face_center[1] - prev_y_pos)
                 print(head_pos)
                 interpret_gesture(leftHand, rightHand, head_pos)
@@ -461,10 +409,7 @@ if __name__ == "__main__":
                 elif rightHand == '5':
                     print('right')
 
-
-
-
-        # cv2.imshow('Video', frame)
+        cv2.imshow('Video', frame)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):
