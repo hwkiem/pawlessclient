@@ -18,7 +18,7 @@ import urllib
 driver = webdriver.Firefox()
 appState = ''
 curUNI = 'Unknown'
-baseUrl = 'http://127.0.0.1:8000/'
+baseUrl = 'http://pawlessprint.herokuapp.com/'
 curDoc = None
 printer_name = sys.argv[1]
 
@@ -57,7 +57,6 @@ def head_movement(frame, first_frame):
         print(y_movement)
         if y_movement > 200:
             return 'Jump'
-
 
 
 def find_gesture(filename):
@@ -208,7 +207,7 @@ def interpret_gesture(left, right, head_pos):
         time.sleep(2)
 
     elif appState == 'fileList': # move left, move right, select for preview
-        if left == '5':
+        if left == '5' and curDoc != 1:
             driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc - 1))
             time.sleep(2)
             s = (driver.current_url.split(curUNI + '/'))[1]
@@ -220,7 +219,7 @@ def interpret_gesture(left, right, head_pos):
             curDoc = int(s[:-1])
         elif head_pos == 'lean_left':
             appState = 'preview'
-            driver.get(baseUrl + 'post/' + str(curDoc) + '/fileview')
+            driver.get(baseUrl + 'user/' + str(curDoc) + '/fileview')
             time.sleep(2)
         elif head_pos == 'duck':
             # TODO EDIT INSTRUCTIONS
@@ -232,7 +231,7 @@ def interpret_gesture(left, right, head_pos):
             engine.say(instructions)
 
         elif head_pos == 'jump':
-            url = "http://pawlessprint.herokuapp.com/post/" + curDoc + "/fileview"
+            url = "http://pawlessprint.herokuapp.com/post/" + str(curDoc) + "/fileview"
 
             response = request.urlopen(url).read()
             print(response)
@@ -246,18 +245,23 @@ def interpret_gesture(left, right, head_pos):
 
             os.system("lpr -P %s to_print.pdf", printer_name)
     elif appState == 'preview': # scroll, print, back out
-        # if left == '5': # left analagous to up
-        #     x = driver.find_element_by_id('previous')
-        #     x.click()
-        #     time.sleep(2)
-        # elif right == '5': # right to down
-        #     x = driver.find_element_by_class_name('toolbarButton pageDown').click()
-
-            # time.sleep(2)
         if head_pos == 'lean_right':
             appState = 'fileList'
             driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc))
             time.sleep(2)
+        elif left == '5': # left analagous to up
+            x = driver.find_element_by_xpath("//body")
+            x.click()
+            for i in range(0, 20):
+                x.send_keys(Keys.UP)
+            time.sleep(2)
+        elif right == '5': # right to down
+            x = driver.find_element_by_xpath("//body")
+            x.click()
+            for i in range(0, 20):
+                x.send_keys(Keys.DOWN)
+            time.sleep(2)
+
 
 
 
@@ -368,7 +372,7 @@ if __name__ == "__main__":
                 logout_counter = 5
             if len(face_encodings) == 1 and appState == '': # someone entered frame
                 appState = 'notLoggedIn'
-                driver.get(baseUrl + 'client/')
+                driver.get(baseUrl)
                 time.sleep(.5)
                 driver.maximize_window()
             if not login:
