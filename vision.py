@@ -3,16 +3,23 @@ import numpy as np
 import face_recognition
 import os
 import math
+import sys
+import pyttsx3
 from selenium import webdriver
 import time
-import pyttsx3
+from urllib import request
+from bs4 import BeautifulSoup
+import re
+import os
+import urllib
+
 
 driver = webdriver.Firefox()
 appState = ''
 curUNI = 'Unknown'
-baseUrl = 'http://127.0.0.1:8000/'
+baseUrl = 'http://pawlessprint.herokuapp.com/'
 curDoc = None
-
+printer_name = sys.argv[1]
 
 
 def get_coords(p1):
@@ -23,7 +30,7 @@ def get_coords(p1):
 
 
 def head_movement(frame, first_frame):
-    gesture = 'Unconfirmed'
+
     x_movement = 0
     y_movement = 0
 
@@ -46,13 +53,10 @@ def head_movement(frame, first_frame):
         y_movement += abs(a[1] - b[1])
 
         # print(y_movement)
-        if y_movement > 50:
-            gesture = 'Yes'
+        print(y_movement)
+        if y_movement > 200:
+            return 'Jump'
 
-        if gesture == 'Yes':
-            return "Confirmed"
-        else:
-            return "Unconfirmed"
 
 
 def find_gesture(filename):
@@ -186,12 +190,13 @@ def build_face_lists():
     return encodings, names
 
 
-def interpret_gesture(left, right): 
+def interpret_gesture(left, right, head_pos):
     global appState
-    global curDoc 
+    global curDoc
     global baseUrl
     global driver
     global curUNI
+    global printer_name
 
     if appState == 'notLoggedIn' and left == '5' and right == '5': # send uni to login
         appState = 'fileList'
@@ -209,7 +214,7 @@ def interpret_gesture(left, right):
             time.sleep(2)
             s = (driver.current_url.split(curUNI + '/'))[1]
             curDoc = int(s[:-1])
-        elif left == '2' and right == '2':
+        elif left == 'two' and right == 'two':
             # TODO EDIT INSTRUCTIONS
             instructions = "To select the next file in your queue, hold up a five with your right hand and a fist with your left, \
                 To move back up to the previous uploaded file, hold up a five with your left hand and a fist with your right, \
@@ -217,15 +222,30 @@ def interpret_gesture(left, right):
                 To logout, hold up a fist with both of your hands"
             engine = pyttsx3.init()
             engine.say(instructions)
+
+        elif head_pos == 'jump':
+            url = "http://pawlessprint.herokuapp.com/post/" + curDoc + "/fileview"
+
+            response = request.urlopen(url).read()
+            print(response)
+
+            soup = BeautifulSoup(response)
+            links = soup.find_all("a")
+
+            url = links[0]['href']
+
+            request.urlretrieve(url, "to_print.pdf")
+
+            os.system("lpr -P %s to_print.pdf", printer_name)
     #     elif left == '5' and right == '5':
     #         driver.get('http://localhost:8111/getDoc/')
     #         time.sleep(2)
     # elif appState == 'preview': # scroll, print, back out
     #     # if left == '5' and right == '5': # print, path doesn't exist yet
-    #     #     driver.get('http://localhost:8111/prevDoc/') 
+    #     #     driver.get('http://localhost:8111/prevDoc/')
     #     if left == 'Fist' and right == 'Fist': # back to doc view
     #         driver.get('http://localhost:8111/fileList/')
-    #         time.sleep(2) 
+    #         time.sleep(2)
     #     elif left == '5' and right == 'Fist': # left analagous to up
     #         driver.get('http://localhost:8111/prevDoc/')
     #         time.sleep(2)
@@ -233,7 +253,7 @@ def interpret_gesture(left, right):
     #         driver.get('http://localhost:8111/nextDoc/')
     #         time.sleep(2)
 
-    # elif appState == 'pageView' # scroll betweeen pages, go back 
+    # elif appState == 'pageView' # scroll betweeen pages, go back
 
 
 
@@ -244,7 +264,7 @@ def interpret_gesture(left, right):
 if __name__ == "__main__":
 
     # global appState
-    # global curDoc 
+    # global curDoc
     # global baseUrl
     # global driver
     # global curUNI
@@ -265,12 +285,12 @@ if __name__ == "__main__":
     aWeight = 0.5
 
     confirmed = 'Unconfirmed'
-    head_counter = 4
     has_confirmed = False
 
     login = False
     logout = False
-    has_confirmed_print = False
+
+    prev_y_pos = 0
     while True:
         # Grab a single frame of video
         ret, frame1 = video_capture.read()
@@ -300,7 +320,6 @@ if __name__ == "__main__":
                     # See if the face is a match for the known face(s)
                     matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
                     name = "Unknown"
-
                     # # If a match was found in known_face_encodings, just use the first one.
                     # if True in matches:
                     #     first_match_index = matches.index(True)
@@ -331,37 +350,13 @@ if __name__ == "__main__":
             cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
             face_center = left + ((right - left) / 2), top + ((bottom - top) / 2)
-            # print(face_center)
-
-            if not has_confirmed:
-                if confirmed == 'Unconfirmed':
-                    confirmed = head_movement(frame, frame_gray1)
-                    head_counter = 3
-                else:
-                    next_check = head_movement(frame, frame_gray1)
-                    # print(next_check)
-                    if next_check == confirmed:
-                        head_counter -= 1
-                        if head_counter < 1:
-                            if next_check == 'Confirmed':
-                                has_confirmed = True
-                                name = name + confirmed
-                                head_counter = 4
-
-                    else:
-                        head_counter = 4
-                        confirmed = next_check
-            # else:
-                # name = name + confirmed
 
 
             curUNI = name
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-
-            if has_confirmed:
+            if name != 'Unknown':
                 login = True
-                confirmed = 'Unconfirmed'
-                # log in make the get request
+
 
             if login:
                 clone = frame.copy()
@@ -381,8 +376,17 @@ if __name__ == "__main__":
 
                 leftHand = find_gesture('left.jpg')
                 rightHand = find_gesture('right.jpg')
+                head_pos = ""
 
-                interpret_gesture(leftHand, rightHand)
+                if prev_y_pos == 0:
+                    prev_y_pos = face_center[1]
+                else:
+                    if prev_y_pos - face_center[1] > 100:
+                        head_pos = "jump"
+                    if face_center[1] - prev_y_pos > 100:
+                        head_pos = "duck"
+
+                interpret_gesture(leftHand, rightHand, head_pos)
 
                 if leftHand == '5' and rightHand == '5':
                     print('High Five')
@@ -392,22 +396,7 @@ if __name__ == "__main__":
                     print('right')
 
 
-                if confirmed == 'Unconfirmed':
-                    confirmed = head_movement(frame, frame_gray1)
-                    head_counter = 3
-                else:
-                    next_check = head_movement(frame, frame_gray1)
-                    # print(next_check)
-                    if next_check == confirmed:
-                        head_counter -= 1
-                        if head_counter < 1:
-                            if next_check == 'Confirmed':
-                                has_confirmed_print = True
-                                # print current pdf
-                                confirmed = 'Unconfirmed'
-                    else:
-                        head_counter = 4
-                        confirmed = next_check
+
 
         # cv2.imshow('Video', frame)
 
