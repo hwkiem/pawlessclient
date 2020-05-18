@@ -18,7 +18,7 @@ import urllib
 driver = webdriver.Firefox()
 appState = ''
 curUNI = 'Unknown'
-baseUrl = 'http://pawlessprint.herokuapp.com/'
+baseUrl = 'http://127.0.0.1:8000/'
 curDoc = None
 printer_name = sys.argv[1]
 
@@ -206,6 +206,7 @@ def interpret_gesture(left, right, head_pos):
         curDoc = 1
         driver.get(baseUrl + 'user/' + curUNI + '/1/')
         time.sleep(2)
+
     elif appState == 'fileList': # move left, move right, select for preview
         if left == '5':
             driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc - 1))
@@ -217,18 +218,45 @@ def interpret_gesture(left, right, head_pos):
             time.sleep(2)
             s = (driver.current_url.split(curUNI + '/'))[1]
             curDoc = int(s[:-1])
-        elif nodded:
+        elif head_pos == 'lean_left':
             appState = 'preview'
             driver.get(baseUrl + 'post/' + str(curDoc) + '/fileview')
             time.sleep(2)
+        elif head_pos == 'duck':
+            # TODO EDIT INSTRUCTIONS
+            instructions = "To select the next file in your queue, hold up a five with your right hand, \
+                To move back up to the previous uploaded file, hold up a five with your left hand, \
+                To print out the displayed file, jump \
+                To logout, just walk away"
+            engine = pyttsx3.init()
+            engine.say(instructions)
+
+        elif head_pos == 'jump':
+            url = "http://pawlessprint.herokuapp.com/post/" + curDoc + "/fileview"
+
+            response = request.urlopen(url).read()
+            print(response)
+
+            soup = BeautifulSoup(response)
+            links = soup.find_all("a")
+
+            url = links[0]['href']
+
+            request.urlretrieve(url, "to_print.pdf")
+
+            os.system("lpr -P %s to_print.pdf", printer_name)
     elif appState == 'preview': # scroll, print, back out
-        if left == '5': # left analagous to up
-            x = driver.find_element_by_id('previous')
-            x.click()
-            time.sleep(2)
-        elif right == '5': # right to down
-            x = driver.find_element_by_id('next')
-            x.click()
+        # if left == '5': # left analagous to up
+        #     x = driver.find_element_by_id('previous')
+        #     x.click()
+        #     time.sleep(2)
+        # elif right == '5': # right to down
+        #     x = driver.find_element_by_class_name('toolbarButton pageDown').click()
+
+            # time.sleep(2)
+        if head_pos == 'lean_right':
+            appState = 'fileList'
+            driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc))
             time.sleep(2)
 
 
@@ -310,6 +338,7 @@ if __name__ == "__main__":
     logout = False
 
     prev_y_pos = 0
+    prev_x_pos = 0
     logout_counter = 5
     while True:
         # Grab a single frame of video
@@ -411,9 +440,18 @@ if __name__ == "__main__":
                 else:
                     if prev_y_pos - face_center[1] > 100:
                         head_pos = "jump"
-                    if face_center[1] - prev_y_pos > 100:
+                    if face_center[1] - prev_y_pos > 50:
                         head_pos = "duck"
-
+                
+                if prev_x_pos == 0:
+                    prev_x_pos = face_center[0]
+                else:
+                    if prev_x_pos - face_center[0] > 100:
+                        head_pos = "lean_right"
+                    if face_center[0] - prev_x_pos > 100:
+                        head_pos = "lean_left"
+                print(face_center[1] - prev_y_pos)
+                print(head_pos)
                 interpret_gesture(leftHand, rightHand, head_pos)
 
                 if leftHand == '5' and rightHand == '5':
