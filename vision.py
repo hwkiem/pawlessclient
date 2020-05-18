@@ -162,6 +162,11 @@ def interpret_gesture(left, right, head_pos):
         return
     global printer_name
 
+    if os.path.exists('to_print.pdf') or os.path.exists('to_print.jpeg') or os.path.exists('to_print.png'):
+        os.remove('to_print.pdf')
+        os.remove('to_print.jpeg')
+        os.remove('to_print.png')
+
     if head_pos == 'duck':
         # TODO EDIT INSTRUCTIONS
         instructions = "To select the next file in your queue, hold up a five with your right hand, \
@@ -227,7 +232,7 @@ def interpret_gesture(left, right, head_pos):
 
 
         elif head_pos == 'jump':
-            url = "http://pawlessprint.herokuapp.com/post/" + str(3) + "/fileview"
+            url = "http://pawlessprint.herokuapp.com/user/" + curUNI + '/' + str(curDoc) + "/view"
 
             response1 = urllib.request.urlopen(url)
             response = response1.read()
@@ -238,8 +243,6 @@ def interpret_gesture(left, right, head_pos):
             url = links[0]['src']
 
             request.urlretrieve(url, "to_print.pdf")
-
-            os.system("lpr -P %s to_print.pdf" % printer_name)
     #     elif left == '5' and right == '5':
     #         driver.get('http://localhost:8111/getDoc/')
     #         time.sleep(2)
