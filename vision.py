@@ -4,6 +4,7 @@ import face_recognition
 import os
 import math
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 import time
 
 
@@ -12,6 +13,7 @@ appState = ''
 curUNI = 'Unknown'
 baseUrl = 'http://127.0.0.1:8000/'
 curDoc = None
+startHead = None
 
 
 
@@ -46,7 +48,7 @@ def head_movement(frame, first_frame):
         y_movement += abs(a[1] - b[1])
 
         # print(y_movement)
-        if y_movement > 50:
+        if y_movement > 100:
             gesture = 'Yes'
 
         if gesture == 'Yes':
@@ -186,12 +188,14 @@ def build_face_lists():
     return encodings, names
 
 
-def interpret_gesture(left, right): 
+def interpret_gesture(left, right, nodded): 
     global appState
     global curDoc 
     global baseUrl
     global driver
     global curUNI
+    if curUNI == 'Unknown':
+        return
 
     if appState == 'notLoggedIn' and left == '5' and right == '5': # send uni to login
         appState = 'fileList'
@@ -199,33 +203,32 @@ def interpret_gesture(left, right):
         driver.get(baseUrl + 'user/' + curUNI + '/1/')
         time.sleep(2)
     elif appState == 'fileList': # move left, move right, select for preview
-        if left == '5' and right == 'Fist':
+        if left == '5':
             driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc - 1))
             time.sleep(2)
             s = (driver.current_url.split(curUNI + '/'))[1]
             curDoc = int(s[:-1])
-        elif left == 'Fist' and right == '5':
+        elif right == '5':
             driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc + 1))
             time.sleep(2)
             s = (driver.current_url.split(curUNI + '/'))[1]
             curDoc = int(s[:-1])
-    #     elif left == '5' and right == '5':
-    #         driver.get('http://localhost:8111/getDoc/')
-    #         time.sleep(2)
-    # elif appState == 'preview': # scroll, print, back out
-    #     # if left == '5' and right == '5': # print, path doesn't exist yet
-    #     #     driver.get('http://localhost:8111/prevDoc/') 
-    #     if left == 'Fist' and right == 'Fist': # back to doc view
-    #         driver.get('http://localhost:8111/fileList/')
-    #         time.sleep(2) 
-    #     elif left == '5' and right == 'Fist': # left analagous to up
-    #         driver.get('http://localhost:8111/prevDoc/')
-    #         time.sleep(2)
-    #     elif left == 'Fist' and right == '5': right to down
-    #         driver.get('http://localhost:8111/nextDoc/')
-    #         time.sleep(2)
+        elif nodded:
+            appState = 'preview'
+            driver.get(baseUrl + 'post/' + str(curDoc) + '/fileview')
+            time.sleep(2)
+    elif appState == 'preview': # scroll, print, back out
+        if left == '5': # left analagous to up
+            x = driver.find_element_by_id('previous')
+            x.click()
+            time.sleep(2)
+        elif right == '5': # right to down
+            x = driver.find_element_by_id('next')
+            x.click()
+            time.sleep(2)
 
-    # elif appState == 'pageView' # scroll betweeen pages, go back 
+
+
 
 
 
@@ -283,7 +286,7 @@ if __name__ == "__main__":
 
             if len(face_encodings) == 1 and appState == '': # someone entered frame
                 appState = 'notLoggedIn'
-                driver.get(baseUrl + 'about/')
+                driver.get(baseUrl + 'client/')
                 time.sleep(.5)
                 driver.maximize_window()
             if not login:
@@ -337,7 +340,7 @@ if __name__ == "__main__":
                         if head_counter < 1:
                             if next_check == 'Confirmed':
                                 has_confirmed = True
-                                name = name + confirmed
+                                # name = name + confirmed
                                 head_counter = 4
 
                     else:
@@ -374,7 +377,7 @@ if __name__ == "__main__":
                 leftHand = find_gesture('left.jpg')
                 rightHand = find_gesture('right.jpg')
 
-                interpret_gesture(leftHand, rightHand)
+                interpret_gesture(leftHand, rightHand, has_confirmed)
 
                 if leftHand == '5' and rightHand == '5':
                     print('High Five')
