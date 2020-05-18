@@ -415,8 +415,17 @@ if __name__ == "__main__":
                 (height, width) = frame.shape[:2]
 
                 # HAND REGIONS
-                hand_regionL = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                                      int(face_center[0]) + 150: int(face_center[0]) + 600].copy()
+                # hand_regionL = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
+                #                       int(face_center[0]) + 150: int(face_center[0]) + 600].copy()
+
+                # cv2.imshow("L", hand_regionL)
+
+                # hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
+                #                       int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
+
+                # cv2.imshow("R", hand_regionR)
+                hand_regionL = frame1[50: shape[0],
+                                      right: shape[1].copy()
 
                 cv2.imshow("L", hand_regionL)
 
