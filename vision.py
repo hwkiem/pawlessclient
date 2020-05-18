@@ -388,11 +388,11 @@ if __name__ == "__main__":
                 hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
                                int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
 
-                cv2.imwrite('left.jpg', hand_regionL)
-                cv2.imwrite('right.jpg', hand_regionR)
+                cv2.imwrite('hands/left.jpg', hand_regionL)
+                cv2.imwrite('hands/right.jpg', hand_regionR)
 
-                leftHand = find_gesture('left.jpg')
-                rightHand = find_gesture('right.jpg')
+                leftHand = find_gesture('hands/left.jpg')
+                rightHand = find_gesture('hands/right.jpg')
                 head_pos = ""
 
                 if prev_y_pos == 0:
