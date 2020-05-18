@@ -9,6 +9,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 from urllib import request
+import urllib.request
 from bs4 import BeautifulSoup
 import re
 import os
@@ -194,19 +195,21 @@ def interpret_gesture(left, right, head_pos):
             time.sleep(2)
 
         elif head_pos == 'jump':
-            url = "http://pawlessprint.herokuapp.com/post/" + str(curDoc) + "/fileview"
+            url = "http://pawlessprint.herokuapp.com/post/" + str(3) + "/fileview"
 
-            response = request.urlopen(url).read()
-            print(response)
+            response1 = urllib.request.urlopen(url)
+            response = response1.read()
 
             soup = BeautifulSoup(response)
-            links = soup.find_all("a")
+            links = soup.find_all("embed")
 
-            url = links[0]['href']
+            url = links[0]['src']
+
 
             request.urlretrieve(url, "to_print.pdf")
-
-            os.system("lpr -P %s to_print.pdf", printer_name)
+ 
+            #os.system("lpstat -p -d")
+            os.system("lpr -P %s to_print.pdf" % printer_name)
     elif appState == 'preview': # scroll, print, back out
         if head_pos == 'lean_right':
             appState = 'fileList'
@@ -227,19 +230,21 @@ def interpret_gesture(left, right, head_pos):
 
 
         elif head_pos == 'jump':
-            url = "http://pawlessprint.herokuapp.com/post/" + str(curDoc) + "/fileview"
+            url = "http://pawlessprint.herokuapp.com/post/" + str(3) + "/fileview"
 
-            response = request.urlopen(url).read()
-            print(response)
+            response1 = urllib.request.urlopen(url)
+            response = response1.read()
 
             soup = BeautifulSoup(response)
-            links = soup.find_all("a")
+            links = soup.find_all("embed")
 
-            url = links[0]['href']
+            url = links[0]['src']
+
 
             request.urlretrieve(url, "to_print.pdf")
-
-            os.system("lpr -P %s to_print.pdf", printer_name)
+ 
+            #os.system("lpstat -p -d")
+            os.system("lpr -P %s to_print.pdf" % printer_name)
     #     elif left == '5' and right == '5':
     #         driver.get('http://localhost:8111/getDoc/')
     #         time.sleep(2)
@@ -414,7 +419,7 @@ if __name__ == "__main__":
                 elif rightHand == '5':
                     print('right')
 
-        cv2.imshow('Video', frame)
+        # cv2.imshow('Video', frame)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):
