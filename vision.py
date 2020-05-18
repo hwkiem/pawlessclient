@@ -388,6 +388,9 @@ if __name__ == "__main__":
                 hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
                                int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
 
+                cv2.rectangle(frame, (int(face_center[0]) + 150, int(face_center[1]) + 250), (int(face_center[0]) + 600, int(face_center[1]) - 250), (0, 255, 0), 2) # left
+                cv2.rectangle(frame, (int(face_center[0]) - 600, int(face_center[1]) + 250), (int(face_center[0]) - 150, int(face_center[1]) - 250), (0, 255, 0), 2) # right
+
                 cv2.imwrite('hands/left.jpg', hand_regionL)
                 cv2.imwrite('hands/right.jpg', hand_regionR)
 
@@ -421,7 +424,7 @@ if __name__ == "__main__":
                 elif rightHand == '5':
                     print('right')
 
-        # cv2.imshow('Video', frame)
+        cv2.imshow('Video', frame)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):
