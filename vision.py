@@ -62,7 +62,6 @@ def find_gesture(filename):
     _, thresh1 = cv2.threshold(blurred, 127, 255,
                                cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-    cv2.imwrite('yuh.jpg', blurred)
 
     max_area = -1
     if contours:

@@ -130,3 +130,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# ignoring hands
+left.jpg
+right.jpg
