@@ -19,8 +19,7 @@ appState = ''
 curUNI = 'Unknown'
 baseUrl = 'http://pawlessprint.herokuapp.com/'
 curDoc = None
-printer_name = sys.argv[1]
-
+printer_name = ''
 
 
 def find_gesture(filename):
@@ -178,7 +177,7 @@ def interpret_gesture(left, right, head_pos):
         driver.get(baseUrl + 'user/' + curUNI + '/1/')
         time.sleep(2)
 
-    elif appState == 'fileList': # move left, move right, select for preview
+    elif appState == 'fileList':  # move left, move right, select for preview
         if left == '5' and curDoc != 1:
             driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc - 1))
             time.sleep(2)
@@ -205,23 +204,21 @@ def interpret_gesture(left, right, head_pos):
 
             url = links[0]['src']
 
-
             request.urlretrieve(url, "to_print.pdf")
- 
-            #os.system("lpstat -p -d")
+
             os.system("lpr -P %s to_print.pdf" % printer_name)
-    elif appState == 'preview': # scroll, print, back out
+    elif appState == 'preview':  # scroll, print, back out
         if head_pos == 'lean_right':
             appState = 'fileList'
             driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc))
             time.sleep(2)
-        elif left == '5': # left analagous to up
+        elif left == '5':  # left analagous to up
             x = driver.find_element_by_xpath("//body")
             x.click()
             for i in range(0, 20):
                 x.send_keys(Keys.UP)
             time.sleep(2)
-        elif right == '5': # right to down
+        elif right == '5':  # right to down
             x = driver.find_element_by_xpath("//body")
             x.click()
             for i in range(0, 20):
@@ -240,10 +237,8 @@ def interpret_gesture(left, right, head_pos):
 
             url = links[0]['src']
 
-
             request.urlretrieve(url, "to_print.pdf")
- 
-            #os.system("lpstat -p -d")
+
             os.system("lpr -P %s to_print.pdf" % printer_name)
     #     elif left == '5' and right == '5':
     #         driver.get('http://localhost:8111/getDoc/')
@@ -271,7 +266,9 @@ if __name__ == "__main__":
     # global baseUrl
     # global driver
     # global curUNI
-
+    print("Welcome to PawlessPrint. Here is a list of your valid printers:")
+    os.system("lpstat -p -d")
+    printer_name = input("Please name which printer you'd like to connect to: ")
     video_capture = cv2.VideoCapture(0)
 
     known_face_encodings, known_face_names = build_face_lists()
