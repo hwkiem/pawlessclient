@@ -6,10 +6,13 @@ import math
 from selenium import webdriver
 import time
 
+
 driver = webdriver.Firefox()
 appState = ''
 curUNI = 'Unknown'
-curY = 0
+baseUrl = 'http://127.0.0.1:8000/'
+curDoc = None
+
 
 
 def get_coords(p1):
@@ -184,51 +187,59 @@ def build_face_lists():
 
 
 def interpret_gesture(left, right): 
+    global appState
+    global curDoc 
+    global baseUrl
+    global driver
+    global curUNI
+
     if appState == 'notLoggedIn' and left == '5' and right == '5': # send uni to login
-        driver.get('http://localhost:8111/login/' + curUNI)
+        appState = 'fileList'
+        curDoc = 1
+        driver.get(baseUrl + 'user/' + curUNI + '/1/')
         time.sleep(2)
     elif appState == 'fileList': # move left, move right, select for preview
         if left == '5' and right == 'Fist':
-            driver.get('http://localhost:8111/prevDoc/')
+            driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc - 1))
             time.sleep(2)
+            s = (driver.current_url.split(curUNI + '/'))[1]
+            curDoc = int(s[:-1])
         elif left == 'Fist' and right == '5':
-            driver.get('http://localhost:8111/nextDoc/')
+            driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc + 1))
             time.sleep(2)
-        elif left == '5' and right == '5':
-            driver.get('http://localhost:8111/getDoc/')
-            time.sleep(2)
-    elif appState == 'preview': # scroll, print, back out
-        # if left == '5' and right == '5': # print, path doesn't exist yet
-        #     driver.get('http://localhost:8111/prevDoc/') 
-        if left == 'Fist' and right == 'Fist': # back to doc view
-            driver.get('http://localhost:8111/fileList/')
-            time.sleep(2) 
-        elif left == '5' and right == 'Fist': # left analagous to up
-            driver.get('http://localhost:8111/prevDoc/')
-            time.sleep(2)
-        elif left == 'Fist' and right == '5': right to down
-            driver.get('http://localhost:8111/nextDoc/')
-            time.sleep(2)
+            s = (driver.current_url.split(curUNI + '/'))[1]
+            curDoc = int(s[:-1])
+    #     elif left == '5' and right == '5':
+    #         driver.get('http://localhost:8111/getDoc/')
+    #         time.sleep(2)
+    # elif appState == 'preview': # scroll, print, back out
+    #     # if left == '5' and right == '5': # print, path doesn't exist yet
+    #     #     driver.get('http://localhost:8111/prevDoc/') 
+    #     if left == 'Fist' and right == 'Fist': # back to doc view
+    #         driver.get('http://localhost:8111/fileList/')
+    #         time.sleep(2) 
+    #     elif left == '5' and right == 'Fist': # left analagous to up
+    #         driver.get('http://localhost:8111/prevDoc/')
+    #         time.sleep(2)
+    #     elif left == 'Fist' and right == '5': right to down
+    #         driver.get('http://localhost:8111/nextDoc/')
+    #         time.sleep(2)
 
-    elif appState == 'pageView' # scroll betweeen pages, go back 
-
-
-
-
-    if left == '5' and right == '5' and browserOpen: # give face encoding to app
-        driver.get('http://localhost:8111/another')
-        time.sleep(2)
-    elif left == '5' and right == 'Fist':
-        print('going left') # go left
-    elif left == '5' and right == 'Fist':
-        print('going right') # go right
+    # elif appState == 'pageView' # scroll betweeen pages, go back 
 
 
-# def interpret_head(confirmed): # need to use appState to know what moves are legal
+
+
 
 
 
 if __name__ == "__main__":
+
+    # global appState
+    # global curDoc 
+    # global baseUrl
+    # global driver
+    # global curUNI
 
     video_capture = cv2.VideoCapture(0)
 
@@ -270,9 +281,11 @@ if __name__ == "__main__":
             face_locations = face_recognition.face_locations(rgb_small_frame)
             face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
-            if len(face_encodings) > 0 and appState == '':
+            if len(face_encodings) == 1 and appState == '': # someone entered frame
                 appState = 'notLoggedIn'
-                driver.get('http://localhost:8111/')
+                driver.get(baseUrl + 'about/')
+                time.sleep(.5)
+                driver.maximize_window()
             if not login:
                 face_names = []
                 for face_encoding in face_encodings:
@@ -330,8 +343,9 @@ if __name__ == "__main__":
                     else:
                         head_counter = 4
                         confirmed = next_check
-            else:
-                name = name + confirmed
+            # else:
+                # name = name + confirmed
+
 
             curUNI = name
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
@@ -387,7 +401,7 @@ if __name__ == "__main__":
                         head_counter = 4
                         confirmed = next_check
 
-        cv2.imshow('Video', frame)
+        # cv2.imshow('Video', frame)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):
