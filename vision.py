@@ -162,10 +162,17 @@ def interpret_gesture(left, right, head_pos):
         return
     global printer_name
 
-    if os.path.exists('to_print.pdf') or os.path.exists('to_print.jpeg') or os.path.exists('to_print.png'):
+    if os.path.exists('to_print.pdf'):
         os.remove('to_print.pdf')
+    elif os.path.exists('to_print.jpeg'):
         os.remove('to_print.jpeg')
-        os.remove('to_print.png')
+    elif os.path.exists('to_print.png'):
+        os.remove('to_print.pdf')
+    elif os.path.exists('to_print.png'):
+        os.remove('to_print.pdf')
+    elif os.path.exists('to_print.jpg'):
+        os.remove('to_print.jpg')
+
 
     if head_pos == 'duck':
         # TODO EDIT INSTRUCTIONS
@@ -264,11 +271,7 @@ def interpret_gesture(left, right, head_pos):
 
 if __name__ == "__main__":
 
-    # global appState
-    # global curDoc
-    # global baseUrl
-    # global driver
-    # global curUNI
+
     print("Welcome to PawlessPrint. Here is a list of your valid printers:")
     os.system("lpstat -p -d")
     printer_name = input("Please name which printer you'd like to connect to: ")
@@ -372,7 +375,7 @@ if __name__ == "__main__":
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
             if name != 'Unknown':
                 login = True
-            print(name)
+            # print(name)
             if login:
                 clone = frame.copy()
 
@@ -408,8 +411,8 @@ if __name__ == "__main__":
                         head_pos = "lean_left"
                     if face_center[0] - prev_x_pos > 100:
                         head_pos = "lean_right"
-                print(face_center[1] - prev_y_pos)
-                print(head_pos)
+                # print(face_center[1] - prev_y_pos)
+                # print(head_pos)
                 interpret_gesture(leftHand, rightHand, head_pos)
 
                 if leftHand == '5' and rightHand == '5':
