@@ -54,7 +54,8 @@ def find_gesture(filename):
     mask = cv2.dilate(mask, kernel, iterations=4)
 
     # get contours of new binary image
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(
+        mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     cv2.drawContours(dup, contours, -1, (0, 255, 0), 3)
 
     value = (35, 35)
@@ -62,7 +63,6 @@ def find_gesture(filename):
     blurred = cv2.GaussianBlur(mask, value, 0)
     _, thresh1 = cv2.threshold(blurred, 127, 255,
                                cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
 
     max_area = -1
     if contours:
@@ -173,7 +173,6 @@ def interpret_gesture(left, right, head_pos):
     elif os.path.exists('to_print.jpg'):
         os.remove('to_print.jpg')
 
-
     if head_pos == 'duck':
         # TODO EDIT INSTRUCTIONS
         instructions = "To select the next file in your queue, hold up a five with your right hand, \
@@ -202,11 +201,13 @@ def interpret_gesture(left, right, head_pos):
             curDoc = int(s[:-1])
         elif head_pos == 'lean_left':
             appState = 'preview'
-            driver.get(baseUrl + 'user/' + curUNI + '/' + str(curDoc) + '/view')
+            driver.get(baseUrl + 'user/' + curUNI +
+                       '/' + str(curDoc) + '/view')
             time.sleep(2)
 
         elif head_pos == 'jump':
-            url = "http://pawlessprint.herokuapp.com/user/" + curUNI + '/' + str(curDoc) + "/view"
+            url = "http://pawlessprint.herokuapp.com/user/" + \
+                curUNI + '/' + str(curDoc) + "/view"
 
             response1 = urllib.request.urlopen(url)
             response = response1.read()
@@ -237,9 +238,9 @@ def interpret_gesture(left, right, head_pos):
                 x.send_keys(Keys.DOWN)
             time.sleep(2)
 
-
         elif head_pos == 'jump':
-            url = "http://pawlessprint.herokuapp.com/user/" + curUNI + '/' + str(curDoc) + "/view"
+            url = "http://pawlessprint.herokuapp.com/user/" + \
+                curUNI + '/' + str(curDoc) + "/view"
 
             response1 = urllib.request.urlopen(url)
             response = response1.read()
@@ -271,7 +272,6 @@ def interpret_gesture(left, right, head_pos):
 
 if __name__ == "__main__":
 
-
     print("Welcome to PawlessPrint. Here is a list of your valid printers:")
     output = subprocess.check_output("lpstat -p -d", shell=True)
     output = str(output)
@@ -292,7 +292,8 @@ if __name__ == "__main__":
 
     for i in num_to_printer:
         print(i, " ", num_to_printer[i])
-    printer_num = input("Please enter the number corresponding to the printer you'd like to connect to: ")
+    printer_num = input(
+        "Please enter the number corresponding to the printer you'd like to connect to: ")
     printer_name = num_to_printer[int(printer_num)]
 
     video_capture = cv2.VideoCapture(0)
@@ -335,7 +336,8 @@ if __name__ == "__main__":
         if process_this_frame:
             # Find all the faces and face encodings in the current frame of video
             face_locations = face_recognition.face_locations(rgb_small_frame)
-            face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+            face_encodings = face_recognition.face_encodings(
+                rgb_small_frame, face_locations)
 
             if len(face_encodings) == 0 and appState == 'fileList':
                 logout_counter -= 1
@@ -358,7 +360,8 @@ if __name__ == "__main__":
                 face_names = []
                 for face_encoding in face_encodings:
                     # See if the face is a match for the known face(s)
-                    matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+                    matches = face_recognition.compare_faces(
+                        known_face_encodings, face_encoding)
                     name = "Unknown"
                     # # If a match was found in known_face_encodings, just use the first one.
                     # if True in matches:
@@ -366,7 +369,8 @@ if __name__ == "__main__":
                     #     name = known_face_names[first_match_index]
 
                     # Or instead, use the known face with the smallest distance to the new face
-                    face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
+                    face_distances = face_recognition.face_distance(
+                        known_face_encodings, face_encoding)
                     best_match_index = np.argmin(face_distances)
                     if matches[best_match_index]:
                         name = known_face_names[best_match_index]
@@ -387,12 +391,15 @@ if __name__ == "__main__":
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
 
             # Draw a label with a name below the face
-            cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+            cv2.rectangle(frame, (left, bottom - 35),
+                          (right, bottom), (0, 0, 255), cv2.FILLED)
             font = cv2.FONT_HERSHEY_DUPLEX
-            face_center = left + ((right - left) / 2), top + ((bottom - top) / 2)
+            face_center = left + ((right - left) / 2), top + \
+                ((bottom - top) / 2)
 
             curUNI = name
-            cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+            cv2.putText(frame, name, (left + 6, bottom - 6),
+                        font, 1.0, (255, 255, 255), 1)
             if name != 'Unknown':
                 login = True
             # print(name)
@@ -404,13 +411,19 @@ if __name__ == "__main__":
 
                 # HAND REGIONS
                 hand_regionL = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                               int(face_center[0]) + 150: int(face_center[0]) + 600].copy()
+                                      int(face_center[0]) + 150: int(face_center[0]) + 600].copy()
+
+                cv2.imshow("L", hand_regionL)
 
                 hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                               int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
+                                      int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
 
-                cv2.rectangle(frame, (int(face_center[0]) + 150, int(face_center[1]) + 250), (int(face_center[0]) + 600, int(face_center[1]) - 250), (0, 255, 0), 2) # left
-                cv2.rectangle(frame, (int(face_center[0]) - 600, int(face_center[1]) + 250), (int(face_center[0]) - 150, int(face_center[1]) - 250), (0, 255, 0), 2) # right
+                cv2.imshow("R", hand_regionR)
+
+                cv2.rectangle(frame, (int(face_center[0]) + 150, int(face_center[1]) + 250), (int(
+                    face_center[0]) + 600, int(face_center[1]) - 250), (0, 255, 0), 2)  # left
+                cv2.rectangle(frame, (int(face_center[0]) - 600, int(face_center[1]) + 250), (int(
+                    face_center[0]) - 150, int(face_center[1]) - 250), (0, 255, 0), 2)  # right
 
                 cv2.imwrite('hands/left.jpg', hand_regionL)
                 cv2.imwrite('hands/right.jpg', hand_regionR)
