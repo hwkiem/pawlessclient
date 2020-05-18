@@ -43,11 +43,14 @@ def index():
 
 @app.route('/getdoc')
 def getdoc():
+    print(len(current_user.files))
+    print(current_user.curDocIdx)
     # here we will figure out which pdf we actually want to display
     f = current_user.files[current_user.curDocIdx]
     print(f)
     return render_template('doc.html', doc_id=f)
     print(f)
+    # return render_template('doc.html', doc_id=f)
     #ext = os.path.splitext(f)[1].decode('utf-8')
     ext = f.split('.')[-1]
     if ext == 'pdf':
@@ -58,6 +61,7 @@ def getdoc():
         #return send_file(path, attachment_filename=id)
         return show_static_pdf(f)
     print("here")
+    
     return render_template('imageFile.html', img=f)
 
 
