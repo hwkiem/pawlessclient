@@ -177,10 +177,10 @@ def interpret_gesture(left, right, head_pos):
         instructions = "To select the next file in your queue, hold up a five with your right hand, \
                     To move back up to the previous uploaded file, hold up a five with your left hand, \
                     To print out the selected file, jump, \
-                    To enter preview mode, lean right, \
+                    To enter preview mode, lean left, \
                     To scroll down through a document, hold up your right hand, \
                     To scroll up through a document, hold up your left hand, \
-                    To exit preview mode and return to the queue, lean left \
+                    To exit preview mode and return to the queue, lean right \
                     To logout, just walk away"
         engine = pyttsx3.init()
         engine.say(instructions)
