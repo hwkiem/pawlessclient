@@ -291,6 +291,7 @@ if __name__ == "__main__":
     logout = False
 
     prev_y_pos = 0
+    logout_counter = 5
     while True:
         # Grab a single frame of video
         ret, frame1 = video_capture.read()
@@ -308,7 +309,15 @@ if __name__ == "__main__":
             # Find all the faces and face encodings in the current frame of video
             face_locations = face_recognition.face_locations(rgb_small_frame)
             face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-
+            
+            if len(face_encodings) == 0 and appState == 'fileList':
+                logout_counter -= 1
+                if logout_counter == 0:
+                    # log out
+                    appState = ''
+                    driver.get(baseUrl)
+            else:
+                logout_counter = 5
             if len(face_encodings) == 1 and appState == '': # someone entered frame
                 appState = 'notLoggedIn'
                 driver.get(baseUrl + 'about/')
