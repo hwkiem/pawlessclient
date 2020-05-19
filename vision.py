@@ -218,6 +218,7 @@ def interpret_gesture(left, right, head_pos, driver):
             url = links[0]['src']
 
             request.urlretrieve(url, "to_print.pdf")
+            time.sleep(2)
 
             os.system("lpr -P %s to_print.pdf" % printer_name)
     elif appState == 'preview':  # scroll, print, back out
@@ -252,6 +253,7 @@ def interpret_gesture(left, right, head_pos, driver):
             url = links[0]['src']
 
             request.urlretrieve(url, "to_print.pdf")
+            time.sleep(2)
 
 if __name__ == "__main__":
 
