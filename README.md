@@ -6,7 +6,9 @@ To use the client, first create an account at pawlessprint.herokuapp.com and the
 
 To run: python3 vision.py
 
-Below is an outline of our systems functionality: 
+### How to run
+Must install the dependencies in requirements.txt. On top of this, must install geckodriver fromhttps://github.com/mozilla/geckodriver/releases . Once this is downloaded and the geckodriver is moved to a directory in your path, you will be able to run Selenium. 
+
 
 ### Connecting to Printer
 
