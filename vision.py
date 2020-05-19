@@ -337,9 +337,8 @@ if __name__ == "__main__":
         small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
 
         # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
-        rgb_small_frame = small_frame[:, :, ::-1]
-
         # Only process every other frame of video to save time
+        rgb_small_frame = small_frame[:, :, ::-1]
         if process_this_frame:
             # Find all the faces and face encodings in the current frame of video
             face_locations = face_recognition.face_locations(rgb_small_frame)
@@ -419,15 +418,15 @@ if __name__ == "__main__":
 
                 # HAND REGIONS
                 hand_regionL = frame1[40: 600,
-                                      int(face_center[0]) + 150: w].copy()
+                                      int(face_center[0]) + 100: w].copy()
 
                 hand_regionR = frame1[40: 600,
-                                      0: int(face_center[0]) - 150].copy()
+                                      0: int(face_center[0]) - 100].copy()
 
                 cv2.rectangle(
-                    frame, (int(face_center[0]) + 150, 40), (w, 440), (0, 255, 0), 2)  # left
+                    frame, (int(face_center[0]) + 75, 40), (w, 440), (0, 255, 0), 2)  # left
                 cv2.rectangle(frame, (0, 40), (int(
-                    face_center[0]) - 150, 440), (0, 255, 0), 2)  # right
+                    face_center[0]) - 75, 440), (0, 255, 0), 2)  # right
 
                 cv2.imwrite('hands/left.jpg', hand_regionL)
                 cv2.imwrite('hands/right.jpg', hand_regionR)
@@ -435,6 +434,9 @@ if __name__ == "__main__":
                 leftHand = find_gesture('hands/left.jpg')
                 rightHand = find_gesture('hands/right.jpg')
                 head_pos = ""
+
+                # if(leftHand != "None" or rightHand != "None"):
+                #     print("L: %s R: %s" % (leftHand, rightHand))
 
                 if prev_y_pos == 0:
                     prev_y_pos = face_center[1]
@@ -455,14 +457,14 @@ if __name__ == "__main__":
                 # print(head_pos)
                 interpret_gesture(leftHand, rightHand, head_pos, driver)
 
-                if leftHand == '5' and rightHand == '5':
-                    print('High Five')
-                elif leftHand == '5':
-                    print('left')
-                elif rightHand == '5':
-                    print('right')
+                # if leftHand == '5' and rightHand == '5':
+                #     # print('High Five')
+                # elif leftHand == '5':
+                #     # print('left')
+                # elif rightHand == '5':
+                #     # print('right')
 
-        cv2.imshow('Video', frame)
+        #cv2.imshow('Video', frame)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):
