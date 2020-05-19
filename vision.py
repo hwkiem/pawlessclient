@@ -423,9 +423,9 @@ if __name__ == "__main__":
                                       0: int(face_center[0]) - 150].copy()
 
                 cv2.rectangle(
-                    frame, (int(face_center[0]) + 150, 40), (w, 600), (0, 255, 0), 2)  # left
+                    frame, (int(face_center[0]) + 150, 40), (w, 440), (0, 255, 0), 2)  # left
                 cv2.rectangle(frame, (0, 40), (int(
-                    face_center[0]) - 150, 600), (0, 255, 0), 2)  # right
+                    face_center[0]) - 150, 440), (0, 255, 0), 2)  # right
 
                 cv2.imwrite('hands/left.jpg', hand_regionL)
                 cv2.imwrite('hands/right.jpg', hand_regionR)
