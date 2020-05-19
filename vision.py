@@ -172,19 +172,19 @@ def interpret_gesture(left, right, head_pos, driver):
     elif os.path.exists('to_print.jpg'):
         os.remove('to_print.jpg')
 
-    # if head_pos == 'duck':
-    #     instructions = "To select the next file in your queue, hold up a five with your right hand, \
-    #                 To move back up to the previous uploaded file, hold up a five with your left hand, \
-    #                 To print out the selected file, jump, \
-    #                 To enter preview mode, lean left, \
-    #                 To scroll down through a document, hold up your right hand, \
-    #                 To scroll up through a document, hold up your left hand, \
-    #                 To exit preview mode and return to the queue, lean right \
-    #                 To logout, just walk away"
-    #     engine = pyttsx3.init()
-    #     engine.say(instructions)
-    #     engine.runAndWait()
-    #     engine.stop()
+    if head_pos == 'duck':
+        instructions = "To select the next file in your queue, hold up a five with your right hand, \
+                    To move back up to the previous uploaded file, hold up a five with your left hand, \
+                    To print out the selected file, jump, \
+                    To enter preview mode, lean left, \
+                    To scroll down through a document, hold up your right hand, \
+                    To scroll up through a document, hold up your left hand, \
+                    To exit preview mode and return to the queue, lean right \
+                    To logout, just walk away"
+        engine = pyttsx3.init()
+        engine.say(instructions)
+        engine.runAndWait()
+        engine.stop()
 
     if appState == 'notLoggedIn' and left == '5' and right == '5':  # send uni to login
         appState = 'fileList'
@@ -210,6 +210,7 @@ def interpret_gesture(left, right, head_pos, driver):
             time.sleep(2)
 
         elif head_pos == 'jump':
+            print('PRINTING')
             url = "http://pawlessprint.herokuapp.com/user/" + \
                 curUNI + '/' + str(curDoc) + "/view"
 
@@ -243,6 +244,7 @@ def interpret_gesture(left, right, head_pos, driver):
             time.sleep(2)
 
         elif head_pos == 'jump':
+            print('PRINTING')
             url = "http://pawlessprint.herokuapp.com/user/" + \
                 curUNI + '/' + str(curDoc) + "/view"
 
@@ -255,23 +257,7 @@ def interpret_gesture(left, right, head_pos, driver):
             url = links[0]['src']
 
             request.urlretrieve(url, "to_print.pdf")
-    #     elif left == '5' and right == '5':
-    #         driver.get('http://localhost:8111/getDoc/')
-    #         time.sleep(2)
-    # elif appState == 'preview': # scroll, print, back out
-    #     # if left == '5' and right == '5': # print, path doesn't exist yet
-    #     #     driver.get('http://localhost:8111/prevDoc/')
-    #     if left == 'Fist' and right == 'Fist': # back to doc view
-    #         driver.get('http://localhost:8111/fileList/')
-    #         time.sleep(2)
-    #     elif left == '5' and right == 'Fist': # left analagous to up
-    #         driver.get('http://localhost:8111/prevDoc/')
-    #         time.sleep(2)
-    #     elif left == 'Fist' and right == '5': right to down
-    #         driver.get('http://localhost:8111/nextDoc/')
-    #         time.sleep(2)
-
-    # elif appState == 'pageView' # scroll betweeen pages, go back
+            
 
 
 if __name__ == "__main__":
@@ -455,12 +441,12 @@ if __name__ == "__main__":
                 # print(head_pos)
                 interpret_gesture(leftHand, rightHand, head_pos, driver)
 
-                if leftHand == '5' and rightHand == '5':
-                    print('High Five')
-                elif leftHand == '5':
-                    print('left')
-                elif rightHand == '5':
-                    print('right')
+                # if leftHand == '5' and rightHand == '5':
+                #     print('High Five')
+                # elif leftHand == '5':
+                #     print('left')
+                # elif rightHand == '5':
+                #     print('right')
 
         cv2.imshow('Video', frame)
 
