@@ -281,7 +281,7 @@ if __name__ == "__main__":
     output = subprocess.check_output("lpstat -p -d", shell=True)
     output = str(output)
     printer_list = output.split(" ")
-    #printer_options = os.system("lpstat -p -d")
+    # printer_options = os.system("lpstat -p -d")
     num_to_printer = {}
     index = 1
     up_next = False
@@ -412,32 +412,20 @@ if __name__ == "__main__":
                 clone = frame.copy()
 
                 # get the height and width of the frame
-                (height, width) = frame.shape[:2]
+
+                (h, w) = frame.shape[:2]
 
                 # HAND REGIONS
-                # hand_regionL = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                #                       int(face_center[0]) + 150: int(face_center[0]) + 600].copy()
+                hand_regionL = frame1[40: 600,
+                                      int(face_center[0]) + 150: w].copy()
 
-                # cv2.imshow("L", hand_regionL)
+                hand_regionR = frame1[40: 600,
+                                      0: int(face_center[0]) - 150].copy()
 
-                # hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                #                       int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
-
-                # cv2.imshow("R", hand_regionR)
-                hand_regionL = frame1[50: shape[0],
-                                      right: shape[1].copy()
-
-                cv2.imshow("L", hand_regionL)
-
-                hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                                      int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
-
-                cv2.imshow("R", hand_regionR)
-
-                cv2.rectangle(frame, (int(face_center[0]) + 150, int(face_center[1]) + 250), (int(
-                    face_center[0]) + 600, int(face_center[1]) - 250), (0, 255, 0), 2)  # left
-                cv2.rectangle(frame, (int(face_center[0]) - 600, int(face_center[1]) + 250), (int(
-                    face_center[0]) - 150, int(face_center[1]) - 250), (0, 255, 0), 2)  # right
+                cv2.rectangle(
+                    frame, (int(face_center[0]) + 150, 40), (w, 600), (0, 255, 0), 2)  # left
+                cv2.rectangle(frame, (0, 40), (int(
+                    face_center[0]) - 150, 600), (0, 255, 0), 2)  # right
 
                 cv2.imwrite('hands/left.jpg', hand_regionL)
                 cv2.imwrite('hands/right.jpg', hand_regionR)
@@ -472,7 +460,7 @@ if __name__ == "__main__":
                 elif rightHand == '5':
                     print('right')
 
-        # cv2.imshow('Video', frame)
+        cv2.imshow('Video', frame)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):
