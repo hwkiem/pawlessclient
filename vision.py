@@ -173,19 +173,19 @@ def interpret_gesture(left, right, head_pos):
     elif os.path.exists('to_print.jpg'):
         os.remove('to_print.jpg')
 
-    if head_pos == 'duck':
-        instructions = "To select the next file in your queue, hold up a five with your right hand, \
-                    To move back up to the previous uploaded file, hold up a five with your left hand, \
-                    To print out the selected file, jump, \
-                    To enter preview mode, lean left, \
-                    To scroll down through a document, hold up your right hand, \
-                    To scroll up through a document, hold up your left hand, \
-                    To exit preview mode and return to the queue, lean right \
-                    To logout, just walk away"
-        engine = pyttsx3.init()
-        engine.say(instructions)
-        engine.runAndWait()
-        engine.stop()
+    # if head_pos == 'duck':
+    #     instructions = "To select the next file in your queue, hold up a five with your right hand, \
+    #                 To move back up to the previous uploaded file, hold up a five with your left hand, \
+    #                 To print out the selected file, jump, \
+    #                 To enter preview mode, lean left, \
+    #                 To scroll down through a document, hold up your right hand, \
+    #                 To scroll up through a document, hold up your left hand, \
+    #                 To exit preview mode and return to the queue, lean right \
+    #                 To logout, just walk away"
+    #     engine = pyttsx3.init()
+    #     engine.say(instructions)
+    #     engine.runAndWait()
+    #     engine.stop()
 
     if appState == 'notLoggedIn' and left == '5' and right == '5':  # send uni to login
         appState = 'fileList'
@@ -415,8 +415,17 @@ if __name__ == "__main__":
                 (height, width) = frame.shape[:2]
 
                 # HAND REGIONS
-                # hand_regionL = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                #                       int(face_center[0]) + 150: int(face_center[0]) + 600].copy()
+                hand_regionL = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
+                                      int(face_center[0]) + 150: int(face_center[0]) + 600].copy()
+
+                # cv2.imshow("L", hand_regionL)
+
+                hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
+                                      int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
+
+                # cv2.imshow("R", hand_regionR)
+                # hand_regionL = frame1[50: shape[0],
+                #                       right: shape[1].copy()
 
                 # cv2.imshow("L", hand_regionL)
 
@@ -424,15 +433,6 @@ if __name__ == "__main__":
                 #                       int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
 
                 # cv2.imshow("R", hand_regionR)
-                hand_regionL = frame1[50: shape[0],
-                                      right: shape[1].copy()
-
-                cv2.imshow("L", hand_regionL)
-
-                hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                                      int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
-
-                cv2.imshow("R", hand_regionR)
 
                 cv2.rectangle(frame, (int(face_center[0]) + 150, int(face_center[1]) + 250), (int(
                     face_center[0]) + 600, int(face_center[1]) - 250), (0, 255, 0), 2)  # left
