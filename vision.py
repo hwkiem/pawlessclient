@@ -298,8 +298,11 @@ if __name__ == "__main__":
         exit(1)
     for i in num_to_printer:
         print(i, " ", num_to_printer[i])
-    printer_num = input(
-        "Please enter the number corresponding to the printer you'd like to connect to: ")
+    while True:
+        printer_num = input(
+            "Please enter the number corresponding to the printer you'd like to connect to: ")
+        if int(printer_num) in num_to_printer:
+            break
     printer_name = num_to_printer[int(printer_num)]
 
     video_capture = cv2.VideoCapture(0)
