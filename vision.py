@@ -294,7 +294,9 @@ if __name__ == "__main__":
             up_next = True
         else:
             up_next = False
-
+    if len(num_to_printer) == 0:
+        print("No printers found!")
+        exit(1)
     for i in num_to_printer:
         print(i, " ", num_to_printer[i])
     printer_num = input(
