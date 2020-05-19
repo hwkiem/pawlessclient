@@ -15,7 +15,7 @@ import re
 import os
 import subprocess
 
-driver = webdriver.Firefox()
+
 appState = ''
 curUNI = 'Unknown'
 baseUrl = 'http://pawlessprint.herokuapp.com/'
@@ -152,11 +152,10 @@ def build_face_lists():
     return encodings, names
 
 
-def interpret_gesture(left, right, head_pos):
+def interpret_gesture(left, right, head_pos, driver):
     global appState
     global curDoc
     global baseUrl
-    global driver
     global curUNI
     if curUNI == 'Unknown':
         return
@@ -281,7 +280,7 @@ if __name__ == "__main__":
     output = subprocess.check_output("lpstat -p -d", shell=True)
     output = str(output)
     printer_list = output.split(" ")
-    #printer_options = os.system("lpstat -p -d")
+    # printer_options = os.system("lpstat -p -d")
     num_to_printer = {}
     index = 1
     up_next = False
@@ -302,6 +301,7 @@ if __name__ == "__main__":
     printer_name = num_to_printer[int(printer_num)]
 
     video_capture = cv2.VideoCapture(0)
+    driver = webdriver.Firefox()
 
     known_face_encodings, known_face_names = build_face_lists()
 
@@ -412,32 +412,20 @@ if __name__ == "__main__":
                 clone = frame.copy()
 
                 # get the height and width of the frame
-                (height, width) = frame.shape[:2]
+
+                (h, w) = frame.shape[:2]
 
                 # HAND REGIONS
-                hand_regionL = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                                      int(face_center[0]) + 150: int(face_center[0]) + 600].copy()
+                hand_regionL = frame1[40: 600,
+                                      int(face_center[0]) + 150: w].copy()
 
-                # cv2.imshow("L", hand_regionL)
+                hand_regionR = frame1[40: 600,
+                                      0: int(face_center[0]) - 150].copy()
 
-                hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                                      int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
-
-                # cv2.imshow("R", hand_regionR)
-                # hand_regionL = frame1[50: shape[0],
-                #                       right: shape[1].copy()
-
-                # cv2.imshow("L", hand_regionL)
-
-                # hand_regionR = frame1[int(face_center[1]) - 250: int(face_center[1]) + 250,
-                #                       int(face_center[0]) - 600: int(face_center[0]) - 150].copy()
-
-                # cv2.imshow("R", hand_regionR)
-
-                cv2.rectangle(frame, (int(face_center[0]) + 150, int(face_center[1]) + 250), (int(
-                    face_center[0]) + 600, int(face_center[1]) - 250), (0, 255, 0), 2)  # left
-                cv2.rectangle(frame, (int(face_center[0]) - 600, int(face_center[1]) + 250), (int(
-                    face_center[0]) - 150, int(face_center[1]) - 250), (0, 255, 0), 2)  # right
+                cv2.rectangle(
+                    frame, (int(face_center[0]) + 150, 40), (w, 440), (0, 255, 0), 2)  # left
+                cv2.rectangle(frame, (0, 40), (int(
+                    face_center[0]) - 150, 440), (0, 255, 0), 2)  # right
 
                 cv2.imwrite('hands/left.jpg', hand_regionL)
                 cv2.imwrite('hands/right.jpg', hand_regionR)
@@ -463,7 +451,7 @@ if __name__ == "__main__":
                         head_pos = "lean_right"
                 # print(face_center[1] - prev_y_pos)
                 # print(head_pos)
-                interpret_gesture(leftHand, rightHand, head_pos)
+                interpret_gesture(leftHand, rightHand, head_pos, driver)
 
                 if leftHand == '5' and rightHand == '5':
                     print('High Five')
@@ -472,7 +460,7 @@ if __name__ == "__main__":
                 elif rightHand == '5':
                     print('right')
 
-        # cv2.imshow('Video', frame)
+        cv2.imshow('Video', frame)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):

@@ -132,4 +132,5 @@ dmypy.json
 .pyre/
 
 # ignoring hands
-hands/
+hands/left.jpg
+hands/right.jpg
