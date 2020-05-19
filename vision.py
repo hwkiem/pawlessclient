@@ -412,9 +412,6 @@ if __name__ == "__main__":
                 rightHand = find_gesture('hands/right.jpg')
                 head_pos = ""
 
-                # if(leftHand != "None" or rightHand != "None"):
-                #     print("L: %s R: %s" % (leftHand, rightHand))
-
                 if prev_y_pos == 0:
                     prev_y_pos = face_center[1]
                 else:
@@ -431,15 +428,6 @@ if __name__ == "__main__":
                     if face_center[0] - prev_x_pos > 100:
                         head_pos = "lean_right"
                 interpret_gesture(leftHand, rightHand, head_pos, driver)
-
-                # if leftHand == '5' and rightHand == '5':
-                #     # print('High Five')
-                # elif leftHand == '5':
-                #     # print('left')
-                # elif rightHand == '5':
-                #     # print('right')
-
-        #cv2.imshow('Video', frame)
 
         # Hit 'q' on the keyboard to quit!
         if cv2.waitKey(1) & 0xFF == ord('q'):
