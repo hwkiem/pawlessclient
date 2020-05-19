@@ -4,10 +4,11 @@ This repo is dedicated to the PawlessPrint Client and uses a live video feed of 
 PawlessClient will run persistently on the computer connected to a printer.
 To use the client, first create an account at pawlessprint.herokuapp.com and then upload an image of your face saved as '[YOUR ACCOUNT USERNAME].jpeg' to the faces directory.
 
-To run: python3 vision.py
 
 ### How to run
 Must install the dependencies in requirements.txt. On top of this, must install geckodriver fromhttps://github.com/mozilla/geckodriver/releases . Once this is downloaded and the geckodriver is moved to a directory in your path, you will be able to run Selenium. You will also need to add a well-cropped photo of yourself to the /faces directory, named the same as your PawlessPrint profile username; for example, user 'jpr2158' on PawlessPrint must add their face to /faces and name it 'jpr2158.jpeg'. Finally, you could run into trouble previewing pdf's using Firefox. If this happens, the likely fix is Settings > Preferences > Files and Applications > change PDF action to preview in Firefox.  
+
+To run: python3 vision.py
 
 
 ### Connecting to Printer
