@@ -1,9 +1,7 @@
 import cv2
 import numpy as np
 import face_recognition
-import os
 import math
-import sys
 import pyttsx3
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -11,7 +9,6 @@ import time
 from urllib import request
 import urllib.request
 from bs4 import BeautifulSoup
-import re
 import os
 import subprocess
 
@@ -93,9 +90,7 @@ def find_gesture(filename):
     areacnt = cv2.contourArea(cnt)
     areaRatio = ((areaHull - areacnt) / areacnt) * 100
 
-    # drawing = np.zeros(dup.shape,np.uint8)
-    # cv2.drawContours(drawing,[cnt],0,(0,255,0),0)
-    # cv2.drawContours(drawing,[hull],0,(0,0,255),0)
+
     hull = cv2.convexHull(cnt, returnPoints=False)
     defects = cv2.convexityDefects(cnt, hull)
     count_defects = 0
@@ -172,19 +167,19 @@ def interpret_gesture(left, right, head_pos, driver):
     elif os.path.exists('to_print.jpg'):
         os.remove('to_print.jpg')
 
-    # if head_pos == 'duck':
-    #     instructions = "To select the next file in your queue, hold up a five with your right hand, \
-    #                 To move back up to the previous uploaded file, hold up a five with your left hand, \
-    #                 To print out the selected file, jump, \
-    #                 To enter preview mode, lean left, \
-    #                 To scroll down through a document, hold up your right hand, \
-    #                 To scroll up through a document, hold up your left hand, \
-    #                 To exit preview mode and return to the queue, lean right \
-    #                 To logout, just walk away"
-    #     engine = pyttsx3.init()
-    #     engine.say(instructions)
-    #     engine.runAndWait()
-    #     engine.stop()
+    if head_pos == 'duck':
+         instructions = "To select the next file in your queue, hold up a five with your right hand, \
+                     To move back up to the previous uploaded file, hold up a five with your left hand, \
+                     To print out the selected file, jump, \
+                     To enter preview mode, lean left, \
+                     To scroll down through a document, hold up your right hand, \
+                     To scroll up through a document, hold up your left hand, \
+                     To exit preview mode and return to the queue, lean right \
+                     To logout, just walk away"
+         engine = pyttsx3.init()
+         engine.say(instructions)
+         engine.runAndWait()
+         engine.stop()
 
     if appState == 'notLoggedIn' and left == '5' and right == '5':  # send uni to login
         appState = 'fileList'
@@ -255,24 +250,6 @@ def interpret_gesture(left, right, head_pos, driver):
             url = links[0]['src']
 
             request.urlretrieve(url, "to_print.pdf")
-    #     elif left == '5' and right == '5':
-    #         driver.get('http://localhost:8111/getDoc/')
-    #         time.sleep(2)
-    # elif appState == 'preview': # scroll, print, back out
-    #     # if left == '5' and right == '5': # print, path doesn't exist yet
-    #     #     driver.get('http://localhost:8111/prevDoc/')
-    #     if left == 'Fist' and right == 'Fist': # back to doc view
-    #         driver.get('http://localhost:8111/fileList/')
-    #         time.sleep(2)
-    #     elif left == '5' and right == 'Fist': # left analagous to up
-    #         driver.get('http://localhost:8111/prevDoc/')
-    #         time.sleep(2)
-    #     elif left == 'Fist' and right == '5': right to down
-    #         driver.get('http://localhost:8111/nextDoc/')
-    #         time.sleep(2)
-
-    # elif appState == 'pageView' # scroll betweeen pages, go back
-
 
 if __name__ == "__main__":
 
@@ -280,7 +257,7 @@ if __name__ == "__main__":
     output = subprocess.check_output("lpstat -p -d", shell=True)
     output = str(output)
     printer_list = output.split(" ")
-    # printer_options = os.system("lpstat -p -d")
+
     num_to_printer = {}
     index = 1
     up_next = False
@@ -288,7 +265,6 @@ if __name__ == "__main__":
         if up_next:
             num_to_printer[index] = i
             index += 1
-
         if "printer" in i:
             up_next = True
         else:
@@ -298,8 +274,11 @@ if __name__ == "__main__":
         exit(1)
     for i in num_to_printer:
         print(i, " ", num_to_printer[i])
-    printer_num = input(
-        "Please enter the number corresponding to the printer you'd like to connect to: ")
+    while True:
+        printer_num = input(
+            "Please enter the number corresponding to the printer you'd like to connect to: ")
+        if int(printer_num) in num_to_printer:
+            break
     printer_name = num_to_printer[int(printer_num)]
 
     video_capture = cv2.VideoCapture(0)
@@ -369,12 +348,6 @@ if __name__ == "__main__":
                     matches = face_recognition.compare_faces(
                         known_face_encodings, face_encoding)
                     name = "Unknown"
-                    # # If a match was found in known_face_encodings, just use the first one.
-                    # if True in matches:
-                    #     first_match_index = matches.index(True)
-                    #     name = known_face_names[first_match_index]
-
-                    # Or instead, use the known face with the smallest distance to the new face
                     face_distances = face_recognition.face_distance(
                         known_face_encodings, face_encoding)
                     best_match_index = np.argmin(face_distances)
@@ -408,7 +381,7 @@ if __name__ == "__main__":
                         font, 1.0, (255, 255, 255), 1)
             if name != 'Unknown':
                 login = True
-            # print(name)
+
             if login:
                 clone = frame.copy()
 
@@ -453,8 +426,6 @@ if __name__ == "__main__":
                         head_pos = "lean_left"
                     if face_center[0] - prev_x_pos > 100:
                         head_pos = "lean_right"
-                # print(face_center[1] - prev_y_pos)
-                # print(head_pos)
                 interpret_gesture(leftHand, rightHand, head_pos, driver)
 
                 # if leftHand == '5' and rightHand == '5':
